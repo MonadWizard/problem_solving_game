@@ -1,0 +1,91 @@
+{
+  "items": [
+    {
+      "id": "rewind_fruit",
+      "name": "Rewind Fruit",
+      "rarity": "rare",
+      "kind": "fruit",
+      "description": "A spiral-skinned cursed fruit that tastes like last Tuesday.",
+      "effect": "Retry a failed boss timer without losing your streak."
+    },
+    {
+      "id": "oracle_fruit",
+      "name": "Oracle Fruit",
+      "rarity": "rare",
+      "kind": "fruit",
+      "description": "Its seeds whisper. Eat one and the fog thins for a moment.",
+      "effect": "Reveal the hidden pattern hint of one problem (once)."
+    },
+    {
+      "id": "haste_fruit",
+      "name": "Haste Fruit",
+      "rarity": "epic",
+      "kind": "fruit",
+      "description": "Crackles with storm-light. Your hands move before your thoughts.",
+      "effect": "Double XP from every solve for 24 hours."
+    },
+    {
+      "id": "streak_freeze",
+      "name": "Streak Freeze",
+      "rarity": "common",
+      "kind": "utility",
+      "description": "A shard of never-melting ice from the Frozen Latitudes.",
+      "effect": "Protects your streak for one missed day (used automatically)."
+    },
+    {
+      "id": "cosmetic_jolly_flag",
+      "name": "Jolly Algorithm Flag",
+      "rarity": "common",
+      "kind": "cosmetic",
+      "description": "A flag stitched with a skull wearing reading glasses.",
+      "effect": "Cosmetic bragging rights on your bounty poster shelf."
+    },
+    {
+      "id": "cosmetic_lantern",
+      "name": "Wayfinder Lantern",
+      "rarity": "common",
+      "kind": "cosmetic",
+      "description": "Burns brighter the closer you sail to The One Solution.",
+      "effect": "Cosmetic bragging rights on your bounty poster shelf."
+    },
+    {
+      "id": "ship_part_sail",
+      "name": "Stormcloth Sail",
+      "rarity": "common",
+      "kind": "ship_part",
+      "description": "Woven from squall-silk. Catches even the laziest wind.",
+      "effect": "A ship part for your growing vessel."
+    },
+    {
+      "id": "ship_part_cannon",
+      "name": "Debugger Cannon",
+      "rarity": "common",
+      "kind": "ship_part",
+      "description": "Fires concentrated print statements at approaching bugs.",
+      "effect": "A ship part for your growing vessel."
+    },
+    {
+      "id": "ship_part_figurehead",
+      "name": "Turtle-and-Hare Figurehead",
+      "rarity": "common",
+      "kind": "ship_part",
+      "description": "Two carved racers forever chasing each other around the prow.",
+      "effect": "A ship part for your growing vessel."
+    }
+  ],
+  "chest_table": [
+    { "drop": "xp", "weight": 45 },
+    { "drop": "streak_freeze", "weight": 15 },
+    { "drop": "cosmetic_jolly_flag", "weight": 10 },
+    { "drop": "cosmetic_lantern", "weight": 10 },
+    { "drop": "ship_part_sail", "weight": 7 },
+    { "drop": "ship_part_cannon", "weight": 7 },
+    { "drop": "ship_part_figurehead", "weight": 6 }
+  ],
+  "boss_drops": [
+    { "drop": "rewind_fruit", "weight": 30 },
+    { "drop": "oracle_fruit", "weight": 30 },
+    { "drop": "haste_fruit", "weight": 20 },
+    { "drop": "streak_freeze", "weight": 20 }
+  ]
+}

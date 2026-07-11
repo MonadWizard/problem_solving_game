@@ -1,0 +1,257 @@
+{
+  "arrays-hashing": {
+    "arrival": [
+      "You drop anchor at a harbor built from crates — thousands of them, each with a number painted on the lid.",
+      "Captain Nullptr taps one crate and it opens instantly. \"A good pirate never searches,\" he says. \"She indexes.\"",
+      "The dockmaster keeps a ledger: every cargo gets a key, every key points straight to its crate.",
+      "Learn the ledger's trick — hash the name, jump to the spot — and no treasure on this island can hide from you."
+    ],
+    "boss_intro": "The Warehouse Leviathan surfaces, ten thousand unsorted crates rattling on its back!",
+    "complete": "The dockmaster stamps your papers. You now see every array as a harbor and every value as a labeled crate.",
+    "title": "Keeper of the Ledger"
+  },
+  "two-pointers": {
+    "arrival": [
+      "Two lighthouses guard this island — one at each end of a single long beach.",
+      "Their beams sweep toward each other, crossing the sand exactly once, missing nothing.",
+      "\"Why walk the beach twice?\" Nullptr asks. \"Start at both ends. Meet in the middle.\"",
+      "Some nights a second, faster beam laps the slow one — that's how the keepers catch smugglers running in circles."
+    ],
+    "boss_intro": "The Two-Headed Pointer Serpent rises from the shallows, one head fast, one head slow!",
+    "complete": "The lighthouse keepers salute. You'll never brute-force a sorted shoreline again.",
+    "title": "Twin-Beam Navigator"
+  },
+  "sliding-window": {
+    "arrival": [
+      "From the crow's nest, the lookout scans the horizon with a long brass spyglass.",
+      "She never re-scans what she's already seen — she slides the glass one degree, drops the old edge, adds the new.",
+      "\"The sea is too big to look at twice,\" she says, tossing you the spyglass.",
+      "Keep what's inside the frame, let go of what leaves it, and the widest ocean becomes one smooth pass."
+    ],
+    "boss_intro": "The Fog Colossus advances — its shifting bulk can only be measured one sliding frame at a time!",
+    "complete": "The lookout pins her spyglass to your coat. One pass is all you need now.",
+    "title": "Spyglass Sentinel"
+  },
+  "stack": {
+    "arrival": [
+      "This island is a single towering column of dinner plates, huts balanced on top of huts.",
+      "Supplies go up one at a time, and the only way down is whatever went up last.",
+      "\"Last in, first out,\" grumbles the quartermaster. \"Like my regrets.\"",
+      "Match what opens with what closes, and the tower never topples."
+    ],
+    "boss_intro": "The Plate Golem stacks itself skyward — topple it one perfectly matched plate at a time!",
+    "complete": "The tower stands. You leave knowing exactly what to push, what to pop, and when.",
+    "title": "Warden of the Tower"
+  },
+  "binary-search": {
+    "arrival": [
+      "The island's great library holds a million charts, and the librarian answers every request in twenty steps.",
+      "She opens the middle drawer, glances once, and discards half the library without apology.",
+      "\"Sorted shelves are a promise,\" she says. \"Break the problem in half, then break the half.\"",
+      "Twenty honest halvings beat a million guilty guesses."
+    ],
+    "boss_intro": "The Half-Blind Kraken attacks — it can only be struck in the exact middle of its remaining reach!",
+    "complete": "The librarian hands you a bookmark shaped like a cutlass. Halve everything, always.",
+    "title": "Halver of Seas"
+  },
+  "linked-list": {
+    "arrival": [
+      "No solid ground here — just barrels roped together in one long floating chain.",
+      "Each barrel knows only one thing: which barrel comes next.",
+      "\"Lose a rope, lose the fleet,\" warns Nullptr, re-tying a knot with three fingers.",
+      "Walk the chain, reverse the chain, splice the chain — but never let go of the barrel you're holding."
+    ],
+    "boss_intro": "The Chainbreaker Eel coils through the barrels, snapping ropes k links at a time!",
+    "complete": "The barrel-folk cheer. You can now re-rope a drifting fleet in your sleep.",
+    "title": "Ropemaster of the Drift"
+  },
+  "trees": {
+    "arrival": [
+      "A single colossal tree covers this island, each branch splitting into exactly two smaller branches.",
+      "Fruit-pickers shout their positions: some call out floor by floor, others dive root-to-leaf and back.",
+      "\"Every branch is a smaller tree,\" says Nullptr. \"Solve the twig, and you've solved the trunk.\"",
+      "Climb with recursion in one hand and a queue in the other."
+    ],
+    "boss_intro": "The Rootmind awakens — a tree so deep its leaves have never heard news from the trunk!",
+    "complete": "The canopy parts to let your ship's mast through. Branches hold no fear for you now.",
+    "title": "Canopy Climber"
+  },
+  "heap": {
+    "arrival": [
+      "The harbor tavern seats a hundred captains, yet the loudest bounty always sits at the front table.",
+      "When one leaves, the crowd shuffles just enough to push the next-loudest forward.",
+      "\"Nobody sorts the whole tavern,\" the barkeep shrugs. \"We only ever care who's first.\"",
+      "Keep the best on top and let the rest stay comfortably messy."
+    ],
+    "boss_intro": "The Tavern Titan bellows — face the patrons in exactly the order of their fury!",
+    "complete": "The barkeep engraves your name on the front table. Priority, always.",
+    "title": "First Table Champion"
+  },
+  "backtracking": {
+    "arrival": [
+      "A hedge maze of black coral sprawls from shore to shore, and the paths rearrange at dusk.",
+      "The island's children race in holding chalk: mark, explore, and if the path sours — erase and step back.",
+      "\"Wrong turns aren't failures,\" Nullptr says. \"They're map data.\"",
+      "Try everything once, keep nothing that fails, and the maze runs out of tricks."
+    ],
+    "boss_intro": "The Maze Regent seals the exits — only one arrangement of your steps can dethrone it!",
+    "complete": "Chalk in hand, you sign the maze's guestbook on the first try. Eventually.",
+    "title": "Chalkline Explorer"
+  },
+  "tries": {
+    "arrival": [
+      "A grove of word-trees: every path from root to leaf spells a sailor's name, letter by letter.",
+      "Shared beginnings share branches — a thousand names, one trunk.",
+      "\"Store the prefix once,\" whispers the grove-keeper, \"and every word that starts with it comes free.\""
+    ],
+    "boss_intro": "The Lexicon Wyrm slithers through the grove — hunt every hidden word on its scaled board!",
+    "complete": "The grove-keeper carves your name into the trunk. It shares a branch with 'grand'.",
+    "title": "Prefix Warden"
+  },
+  "graphs": {
+    "arrival": [
+      "An archipelago of tiny islets, tangled together by rope bridges in no particular order.",
+      "The ferry-folk explore two ways: flood outward ring by ring, or dive one bridge deep until it dead-ends.",
+      "\"Mark where you've been,\" warns the ferryman, \"or the bridges will walk you in circles.\"",
+      "Some bridges have rules — cross this one before that one — and the wise pirate lines them up first."
+    ],
+    "boss_intro": "The Bridge Baron cuts the archipelago in two — flood every islet before the tide beats you!",
+    "complete": "Every islet flies your flag. Connected components, conquered.",
+    "title": "Baron of Bridges"
+  },
+  "advanced-graphs": {
+    "arrival": [
+      "Beyond the archipelago the currents themselves have prices, and every route costs coin or time.",
+      "Harbor pilots argue: cheapest path, shortest path, the one path that uses every bridge exactly once.",
+      "\"Out here, walking isn't enough,\" says Nullptr. \"You must walk cleverly, with a ledger open.\"",
+      "Weigh every edge. Trust the mathematics, not the wind."
+    ],
+    "boss_intro": "The Compiler King's Admiral blockades the strait — decode the order of its alien signal flags!",
+    "complete": "The pilots' guild presses their golden compass into your hands.",
+    "title": "Pilot of Weighted Waters"
+  },
+  "dp-1d": {
+    "arrival": [
+      "A staircase of ancient stone climbs the island's only mountain, and every step has a toll.",
+      "The toll-keeper remembers every climber who came before — she never charges the same question twice.",
+      "\"The future is built from answers you already paid for,\" she says, tapping her ledger.",
+      "Solve the small step, write it down, and the mountain assembles itself beneath you."
+    ],
+    "boss_intro": "The Ledger Wraith demands the one partition that balances its cursed scales!",
+    "complete": "The toll-keeper waves you through free. Memo written, mountain mastered.",
+    "title": "Toll-Keeper's Heir"
+  },
+  "dp-2d": {
+    "arrival": [
+      "Here the farmland is a giant grid, and every field's harvest depends on its two upwind neighbors.",
+      "Farmers fill their tables corner to corner, never planting a cell before its sources are known.",
+      "\"One dimension was practice,\" smiles Nullptr. \"Now the ledger has rows AND columns.\"",
+      "Build the table patiently. The bottom-right corner is where the treasure sums."
+    ],
+    "boss_intro": "The Grid Sovereign unrolls an infinite scroll — match its regular expressions or be erased!",
+    "complete": "The farmers harvest in your honor. No grid will ever look infinite again.",
+    "title": "Sovereign of the Table"
+  },
+  "greedy": {
+    "arrival": [
+      "The market island runs on one law: take the best deal in front of you, right now.",
+      "Merchants who hesitate to reconsider old trades are politely thrown into the bay.",
+      "\"Greed works,\" says the harbormaster, \"but only when today's best choice can never ruin tomorrow.\"",
+      "Learn to smell which bargains are safe to grab — and which need a ledger instead."
+    ],
+    "boss_intro": "The Auction Fiend floods the docks with brackets and wildcards — bid perfectly or bust!",
+    "complete": "The merchants nickname you 'One-Pass'. It's meant with respect.",
+    "title": "One-Pass Magnate"
+  },
+  "intervals-endgame": {
+    "arrival": [
+      "The final island before open water: a harbor scheduling a thousand overlapping departures.",
+      "The harbormaster merges berths, cancels collisions, and still finds room for every honest ship.",
+      "Veterans gather here too, trading endgame tricks — bit-flips, digit spells, geometry sleights.",
+      "\"Everything you've learned sails with you now,\" says Nullptr. \"Clear the schedule. The One Solution waits.\""
+    ],
+    "boss_intro": "The Timetable Tyrant slams the harbor gates — answer every query with the tightest interval or stay ashore forever!",
+    "complete": "The First Sea lies conquered behind you. Ahead, through the fog, the Blind Sea waits.",
+    "title": "Admiral of the First Sea"
+  },
+  "blind-isle-1": {
+    "arrival": [
+      "The Blind Sea swallows your charts. No patterns are written on these waters.",
+      "A bell buoy clangs somewhere in the fog — the first isle takes shape.",
+      "Here they time your cutlass. Draw fast, think faster."
+    ],
+    "boss_intro": "A shadow with too many masts blocks the channel!",
+    "complete": "First isle cleared. The fog respects you a little more.",
+    "title": "Fogcutter"
+  },
+  "blind-isle-2": {
+    "arrival": [
+      "The second isle drifts — it was not here on anyone's map, because there are no maps.",
+      "Interviewer gulls circle overhead, timing your every move.",
+      "Trust the instincts the First Sea gave you."
+    ],
+    "boss_intro": "The gulls part for something bigger!",
+    "complete": "Second isle cleared. Your instincts are sharpening.",
+    "title": "Gullwatcher"
+  },
+  "blind-isle-3": {
+    "arrival": [
+      "Three bells toll. The third isle rises like a question you've heard before, worded differently.",
+      "The fog hides the pattern, but your hands already know it.",
+      "Solve first. Name the trick later."
+    ],
+    "boss_intro": "The water boils — a boss with no silhouette!",
+    "complete": "Third isle cleared. Patterns whisper through the fog now.",
+    "title": "Bellcounter"
+  },
+  "blind-isle-4": {
+    "arrival": [
+      "Halfway through the Blind Sea, the crew stops asking where you're going.",
+      "They've seen you stare into gray nothing and pull answers out of it.",
+      "The fourth isle tests whether that was luck."
+    ],
+    "boss_intro": "A rival captain steps from the mist, stopwatch in hand!",
+    "complete": "Fourth isle cleared. It wasn't luck.",
+    "title": "Mistwalker"
+  },
+  "blind-isle-5": {
+    "arrival": [
+      "The fifth isle is loud — waves argue with rocks, and the clock argues with you.",
+      "Somewhere in the noise is a quiet, familiar structure.",
+      "Find it before the timer finds you."
+    ],
+    "boss_intro": "The rocks themselves rearrange into a snarling gate!",
+    "complete": "Fifth isle cleared. You hear structure inside noise now.",
+    "title": "Stormlistener"
+  },
+  "blind-isle-6": {
+    "arrival": [
+      "On the sixth isle, old enemies return wearing new fog.",
+      "You've beaten every one of them before, in brighter water.",
+      "Prove that mastery survives the dark."
+    ],
+    "boss_intro": "A ghost-lit hull you could swear you've sunk before!",
+    "complete": "Sixth isle cleared. Old victories, new depths.",
+    "title": "Rematch Reaper"
+  },
+  "blind-isle-7": {
+    "arrival": [
+      "The seventh isle barely exists — a sliver of rock and one leaning signpost with no words.",
+      "This close to the end, the Blind Sea stops pretending to be fair.",
+      "Good. You stopped needing fair four isles ago."
+    ],
+    "boss_intro": "The signpost bends — the isle itself is the ambush!",
+    "complete": "Seventh isle cleared. One remains.",
+    "title": "Signless Sailor"
+  },
+  "blind-isle-8": {
+    "arrival": [
+      "The last isle of the Blind Sea, and beyond it — a glow the fog cannot smother.",
+      "Every timer, every star, every scar led here.",
+      "The Compiler King's flagship waits. So does The One Solution."
+    ],
+    "boss_intro": "The Compiler King's flagship emerges — all sails, all cannons, zero comments!",
+    "complete": "The Blind Sea kneels. The One Solution is yours — it compiles everywhere, forever. Legend.",
+    "title": "Sovereign of the Blind Sea"
+  }
+}
