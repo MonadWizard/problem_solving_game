@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="The Grand Algorithm — a pirate adventure roadmap for mastering data structures and algorithms on LeetCode." />
+    <title>The Grand Algorithm</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏴‍☠️</text></svg>" />
+    <script>
+      // Apply persisted theme before first paint (dark is the default).
+      try {
+        if (localStorage.getItem('tga:theme') === 'light') {
+          document.documentElement.classList.remove('dark')
+        }
+      } catch { /* storage unavailable: keep dark */ }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

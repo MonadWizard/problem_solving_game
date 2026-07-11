@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/* Class-based dark mode: <html class="dark">. Dark is the default theme. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-sea-50: #eef7fb;
+  --color-sea-100: #d7ecf5;
+  --color-sea-200: #b0d9ea;
+  --color-sea-300: #7cbfd9;
+  --color-sea-400: #429cc0;
+  --color-sea-500: #2a7fa3;
+  --color-sea-600: #226687;
+  --color-sea-700: #1f536e;
+  --color-sea-800: #1e455c;
+  --color-sea-900: #0d2b3e;
+  --color-sea-950: #071c2b;
+  --color-gold-300: #f5d67a;
+  --color-gold-400: #eec14f;
+  --color-gold-500: #d9a52e;
+  --color-parchment: #f0e2c4;
+  --font-display: Georgia, 'Times New Roman', serif;
+}
+
+html, body, #root {
+  min-height: 100%;
+}
+
+body {
+  @apply bg-sea-50 text-sea-950;
+}
+
+.dark body {
+  @apply bg-sea-950 text-sea-50;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
