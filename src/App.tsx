@@ -1,4 +1,5 @@
 import { createHashRouter, RouterProvider } from 'react-router-dom'
+import { AuthProvider } from './auth/AuthProvider'
 import Layout from './components/Layout'
 import MapScreen from './screens/MapScreen'
 import IslandScreen from './screens/IslandScreen'
@@ -25,5 +26,9 @@ const router = createHashRouter([
 ])
 
 export default function App() {
-  return <RouterProvider router={router} />
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  )
 }

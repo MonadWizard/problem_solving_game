@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
+import AuthMenu from './AuthMenu'
+import SavePrompt from './SavePrompt'
 
 function ThemeToggle() {
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
@@ -49,10 +51,12 @@ export default function Layout() {
           <NavLink to="/about" className={navLink}>
             About
           </NavLink>
+          <AuthMenu />
           <ThemeToggle />
         </nav>
       </header>
       <main className="flex-1 py-4">
+        <SavePrompt />
         <Outlet />
       </main>
       <footer className="border-t border-sea-200 py-3 text-center text-xs opacity-70 dark:border-sea-800">
