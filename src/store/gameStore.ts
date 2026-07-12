@@ -48,6 +48,8 @@ export interface GameStore {
   replaceLocal(next: LocalState): void
   markSolved(journeyId: JourneyId, slug: string): void
   passQuiz(islandId: string): void
+  /** Re-solve a ghost ship (spaced-repetition boss). Grants the ghost_win XP bonus. */
+  defeatGhost(slug: string): void
   startAttempt(journeyId: JourneyId, slug: string): void
   /** Spend a Rewind Fruit to restart a failed timed attempt. */
   rewindAttempt(journeyId: JourneyId, slug: string): boolean
@@ -160,6 +162,12 @@ export const useGameStore = create<GameStore>((set, get) => {
       const { local } = get()
       if (local.events.some((e) => e.type === 'quiz_pass' && e.refSlug === islandId)) return
       const ev = newEvent('quiz_pass', islandId)
+      commit({ ...local, events: [...local.events, ev] }, [{ kind: 'event', event: ev }])
+    },
+
+    defeatGhost(slug) {
+      const { local } = get()
+      const ev = newEvent('ghost_win', slug)
       commit({ ...local, events: [...local.events, ev] }, [{ kind: 'event', event: ev }])
     },
 

@@ -34,6 +34,17 @@ body {
   @apply bg-sea-950 text-sea-50;
 }
 
+.route-dash {
+  stroke-dasharray: 6 8;
+  animation: route-flow 1.6s linear infinite;
+}
+
+@keyframes route-flow {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
