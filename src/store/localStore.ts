@@ -20,15 +20,25 @@ export function defaultLocalState(): LocalState {
 let memory: LocalState | null = null
 
 export function loadLocal(): LocalState {
+  // The memory fallback is only for a genuinely unavailable Storage API
+  // (private-mode quirks). An empty or corrupt key is a normal "no saved
+  // state" case and must resolve to a fresh default, never a stale cache —
+  // otherwise clearing storage (e.g. between tests, or a user clearing site
+  // data) would silently resurrect old progress.
+  let raw: string | null
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return memory ?? defaultLocalState()
+    raw = localStorage.getItem(STORAGE_KEY)
+  } catch {
+    return memory ?? defaultLocalState()
+  }
+  if (!raw) return defaultLocalState()
+  try {
     const parsed = JSON.parse(raw) as Partial<LocalState>
     if (parsed.version !== 1) return defaultLocalState()
     // Fill any missing fields so older snapshots keep working.
     return { ...defaultLocalState(), ...parsed, version: 1 }
   } catch {
-    return memory ?? defaultLocalState()
+    return defaultLocalState()
   }
 }
 

@@ -32,18 +32,22 @@ describe('offline retry queue', () => {
   })
 
   it('offline-then-flush produces the identical cloud state to always-online', async () => {
+    // Same op list replayed on both paths — this proves that delaying
+    // delivery (not regenerating it) never changes the end state.
+    const opsList = ops()
+
     // Path A: always online.
     const alwaysOnline = new FakeCloud()
-    await flushQueue(localState({ queue: ops() }), alwaysOnline)
+    await flushQueue(localState({ queue: opsList }), alwaysOnline)
 
-    // Path B: fails partway, retries, then recovers.
+    // Path B: goes offline first (nothing is delivered), then recovers.
     const flaky = new FakeCloud()
-    let state = localState({ queue: ops() })
-    state = await flushQueue(state, flaky) // full flush once...
     flaky.offline = true
-    state = await flushQueue(localState({ queue: ops() }), flaky) // total failure, keeps ops
+    let state = await flushQueue(localState({ queue: opsList }), flaky)
+    expect(state.queue).toEqual(opsList) // confirmed nothing got through
     flaky.offline = false
-    state = await flushQueue(state, flaky) // at-least-once redelivery of everything
+    state = await flushQueue(state, flaky)
+    expect(state.queue).toEqual([])
 
     expect(flaky.state()).toEqual(alwaysOnline.state())
   })
