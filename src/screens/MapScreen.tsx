@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import { motion } from 'motion/react'
 import { useGameStore } from '../store/gameStore'
 import { totalXp, xpToNextLevel, formatBounty } from '../lib/xp'
 import { computeStreak } from '../lib/streak'
 import { journey2Unlocked } from '../lib/unlocks'
 import SeaChart from '../components/SeaChart'
 import IslandList from '../components/IslandList'
+import AnimatedNumber from '../motion/AnimatedNumber'
 
 type Tab = 1 | 2 | 'abyss'
 
@@ -54,29 +56,43 @@ export default function MapScreen() {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-sea-200 px-4 py-3 dark:border-sea-800">
-        <div>
-          <p className="font-display text-lg font-bold text-gold-500 dark:text-gold-400">{formatBounty(xp)}</p>
+      <div className="relative mb-4 flex flex-wrap items-center justify-between gap-3 overflow-hidden rounded-lg border border-sea-200 px-4 py-3 dark:border-sea-800">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-10"
+          style={{ filter: 'url(#parchment-grain)', backgroundColor: 'var(--color-parchment)' }}
+          aria-hidden
+        />
+        <div className="relative">
+          <p className="font-display text-lg font-bold text-gold-500 dark:text-gold-400">
+            <AnimatedNumber value={xp} format={formatBounty} />
+          </p>
           <p className="text-xs opacity-70">
-            Level {level} · {current}/{needed} XP to next level
+            Level {level} · <AnimatedNumber value={current} />/{needed} XP to next level
           </p>
         </div>
-        <p className="text-sm" aria-label={`${streak} day streak`}>
+        <p className="relative text-sm" aria-label={`${streak} day streak`}>
           🔥 {streak} day{streak === 1 ? '' : 's'}
         </p>
       </div>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div role="tablist" aria-label="Journey" className="flex gap-2">
+        <div role="tablist" aria-label="Journey" className="relative flex gap-2">
           <button
             role="tab"
             aria-selected={activeTab === 1}
             onClick={() => setTab('1')}
-            className={`rounded-full px-4 py-2 text-sm font-medium ${
-              activeTab === 1 ? 'bg-sea-600 text-white' : 'border border-sea-300 dark:border-sea-700'
+            className={`relative rounded-full px-4 py-2 text-sm font-medium ${
+              activeTab === 1 ? 'text-white' : 'border border-sea-300 dark:border-sea-700'
             }`}
           >
-            The First Sea
+            {activeTab === 1 && (
+              <motion.span
+                layoutId="journey-tab-pill"
+                className="absolute inset-0 rounded-full bg-sea-600"
+                transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+              />
+            )}
+            <span className="relative">The First Sea</span>
           </button>
           <button
             role="tab"
@@ -84,21 +100,28 @@ export default function MapScreen() {
             disabled={!j2Unlocked}
             title={j2Unlocked ? undefined : 'Complete The First Sea to unlock'}
             onClick={() => j2Unlocked && setTab('2')}
-            className={`rounded-full px-4 py-2 text-sm font-medium ${
+            className={`relative rounded-full px-4 py-2 text-sm font-medium ${
               activeTab === 2
-                ? 'bg-sea-600 text-white'
+                ? 'text-white'
                 : j2Unlocked
                   ? 'border border-sea-300 dark:border-sea-700'
                   : 'cursor-not-allowed border border-sea-200 opacity-50 dark:border-sea-800'
             }`}
           >
-            The Blind Sea {!j2Unlocked && '🔒'}
+            {activeTab === 2 && (
+              <motion.span
+                layoutId="journey-tab-pill"
+                className="absolute inset-0 rounded-full bg-sea-600"
+                transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+              />
+            )}
+            <span className="relative">The Blind Sea {!j2Unlocked && '🔒'}</span>
           </button>
           <button
             role="tab"
             aria-selected={activeTab === 'abyss'}
             onClick={() => setTab('abyss')}
-            className="cursor-not-allowed rounded-full border border-sea-200 px-4 py-2 text-sm font-medium opacity-50 dark:border-sea-800"
+            className="relative cursor-not-allowed rounded-full border border-sea-200 px-4 py-2 text-sm font-medium opacity-50 dark:border-sea-800"
             title="Coming soon"
           >
             The Abyss
@@ -106,20 +129,34 @@ export default function MapScreen() {
         </div>
 
         {activeTab !== 'abyss' && (
-          <div className="flex gap-1 rounded-full border border-sea-300 p-1 text-xs dark:border-sea-700">
+          <div className="relative flex gap-1 rounded-full border border-sea-300 p-1 text-xs dark:border-sea-700">
             <button
               onClick={() => setView('map')}
               aria-pressed={view === 'map'}
-              className={`rounded-full px-3 py-1 ${view === 'map' ? 'bg-sea-600 text-white' : ''}`}
+              className={`relative rounded-full px-3 py-1 ${view === 'map' ? 'text-white' : ''}`}
             >
-              Map
+              {view === 'map' && (
+                <motion.span
+                  layoutId="map-view-pill"
+                  className="absolute inset-0 rounded-full bg-sea-600"
+                  transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                />
+              )}
+              <span className="relative">Map</span>
             </button>
             <button
               onClick={() => setView('list')}
               aria-pressed={view === 'list'}
-              className={`rounded-full px-3 py-1 ${view === 'list' ? 'bg-sea-600 text-white' : ''}`}
+              className={`relative rounded-full px-3 py-1 ${view === 'list' ? 'text-white' : ''}`}
             >
-              List
+              {view === 'list' && (
+                <motion.span
+                  layoutId="map-view-pill"
+                  className="absolute inset-0 rounded-full bg-sea-600"
+                  transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                />
+              )}
+              <span className="relative">List</span>
             </button>
           </div>
         )}

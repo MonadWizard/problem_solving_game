@@ -1,5 +1,8 @@
+import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { motion, useReducedMotion } from 'motion/react'
 import type { Island, JourneyId } from '../lib/types'
+import { SPRING_SNAPPY } from '../motion/transitions'
 
 interface IslandNodeProps {
   island: Island
@@ -26,29 +29,48 @@ export default function IslandNode({
   total,
   isCurrent,
 }: IslandNodeProps) {
+  const reduced = useReducedMotion()
   const pct = total > 0 ? solved / total : 0
   const circumference = 2 * Math.PI * RADIUS
   const label = `${island.name} — ${unlocked ? `${solved} of ${total} solved${complete ? ', complete' : ''}` : 'locked'}`
 
+  const wasUnlocked = useRef(unlocked)
+  const justUnlocked = !wasUnlocked.current && unlocked
+  useEffect(() => {
+    wasUnlocked.current = unlocked
+  }, [unlocked])
+
   const content = (
-    <g>
-      <circle
-        r={RADIUS + 5}
-        fill="none"
-        stroke="currentColor"
-        strokeOpacity={0.15}
-        strokeWidth={4}
-      />
+    <motion.g
+      whileHover={unlocked ? { scale: 1.06 } : undefined}
+      whileTap={unlocked ? { scale: 0.95 } : undefined}
+      initial={justUnlocked ? { scale: 0.6, opacity: 0 } : false}
+      animate={justUnlocked ? { scale: 1, opacity: 1 } : { scale: 1, opacity: 1 }}
+      transition={reduced ? { duration: 0 } : SPRING_SNAPPY}
+    >
+      <circle r={RADIUS + 5} fill="none" stroke="currentColor" strokeOpacity={0.15} strokeWidth={4} />
       {unlocked && (
-        <circle
+        <motion.circle
           r={RADIUS + 5}
           fill="none"
           stroke={complete ? '#eec14f' : '#2a7fa3'}
           strokeWidth={4}
           strokeLinecap="round"
           strokeDasharray={circumference}
-          strokeDashoffset={circumference * (1 - pct)}
-          transform={`rotate(-90 0 0)`}
+          animate={{ strokeDashoffset: circumference * (1 - pct) }}
+          transition={reduced ? { duration: 0 } : SPRING_SNAPPY}
+          transform="rotate(-90 0 0)"
+        />
+      )}
+      {justUnlocked && !reduced && (
+        <motion.circle
+          r={RADIUS + 5}
+          fill="none"
+          stroke="#eec14f"
+          strokeWidth={6}
+          initial={{ opacity: 0.9, scale: 1 }}
+          animate={{ opacity: 0, scale: 1.8 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
         />
       )}
       <circle
@@ -73,15 +95,10 @@ export default function IslandNode({
           🔒
         </text>
       )}
-      <text
-        y={RADIUS + 22}
-        textAnchor="middle"
-        fontSize={12}
-        className="fill-current"
-      >
+      <text y={RADIUS + 22} textAnchor="middle" fontSize={12} className="fill-current">
         {island.name.replace(/ Island$/, '').replace(/^Blind Isle /, 'Isle ')}
       </text>
-    </g>
+    </motion.g>
   )
 
   if (!unlocked) {

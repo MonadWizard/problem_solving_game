@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import AuthMenu from './AuthMenu'
 import SavePrompt from './SavePrompt'
+import ChestToast from './ChestToast'
+import TextureDefs from '../motion/TextureDefs'
+import PageTransition from '../motion/PageTransition'
 
 function ThemeToggle() {
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
@@ -27,13 +30,22 @@ function ThemeToggle() {
 }
 
 const navLink = ({ isActive }: { isActive: boolean }) =>
-  `rounded px-2 py-1 text-sm font-medium hover:text-gold-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold-400 ${
+  `rounded px-2 py-1 text-sm font-medium transition-transform hover:scale-105 hover:text-gold-400 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold-400 ${
     isActive ? 'text-gold-400' : ''
   }`
 
 export default function Layout() {
   return (
-    <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-3 sm:px-6">
+    <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col px-3 sm:px-6">
+      <TextureDefs />
+      {/* Ambient background: very low-opacity water shimmer, purely decorative. */}
+      <svg
+        className="pointer-events-none fixed inset-0 -z-10 h-full w-full"
+        aria-hidden
+        focusable="false"
+      >
+        <rect width="100%" height="100%" fill="url(#water-shimmer)" className="route-dash-bg" />
+      </svg>
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-sea-200 py-3 dark:border-sea-800">
         <NavLink to="/" className="font-display text-xl font-bold tracking-wide text-sea-700 dark:text-gold-300">
           ☠ The Grand Algorithm
@@ -55,9 +67,12 @@ export default function Layout() {
           <ThemeToggle />
         </nav>
       </header>
-      <main className="flex-1 py-4">
+      <main className="relative flex-1 py-4">
         <SavePrompt />
-        <Outlet />
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
+        <ChestToast />
       </main>
       <footer className="border-t border-sea-200 py-3 text-center text-xs opacity-70 dark:border-sea-800">
         Chart your course. Solve on LeetCode. Claim The One Solution.

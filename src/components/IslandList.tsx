@@ -1,13 +1,14 @@
 import { Link } from 'react-router-dom'
 import type { Journey, ProgressState } from '../lib/types'
 import { islandComplete, islandProgress, islandUnlocked } from '../lib/unlocks'
+import { RevealList, RevealItem } from '../motion/RevealList'
 
 /** Keyboard-navigable, screen-reader-friendly alternative to the SVG sea chart. */
 export default function IslandList({ journey, state }: { journey: Journey; state: ProgressState }) {
   const islands = [...journey.islands].sort((a, b) => a.order - b.order)
 
   return (
-    <ol className="flex flex-col gap-2">
+    <RevealList as="ol" className="flex flex-col gap-2">
       {islands.map((island) => {
         const unlocked = islandUnlocked(journey, island.id, state)
         const complete = islandComplete(journey, island.id, state)
@@ -15,7 +16,7 @@ export default function IslandList({ journey, state }: { journey: Journey; state
 
         const body = (
           <div
-            className={`flex items-center justify-between rounded-lg border px-4 py-3 ${
+            className={`relative flex items-center justify-between overflow-hidden rounded-lg border px-4 py-3 ${
               complete
                 ? 'border-gold-500/60 bg-gold-500/10'
                 : unlocked
@@ -23,15 +24,22 @@ export default function IslandList({ journey, state }: { journey: Journey; state
                   : 'border-sea-200 opacity-60 dark:border-sea-800'
             }`}
           >
-            <span className="font-medium">{island.name}</span>
-            <span className="text-sm">
+            {complete && (
+              <div
+                className="pointer-events-none absolute inset-0 opacity-15"
+                style={{ filter: 'url(#parchment-grain)', backgroundColor: 'var(--color-parchment)' }}
+                aria-hidden
+              />
+            )}
+            <span className="relative font-medium">{island.name}</span>
+            <span className="relative text-sm">
               {unlocked ? (complete ? '★ Complete' : `${solved} / ${total}`) : '🔒 Locked'}
             </span>
           </div>
         )
 
         return (
-          <li key={island.id}>
+          <RevealItem key={island.id} as="li">
             {unlocked ? (
               <Link
                 to={`/island/${journey.id}/${island.id}`}
@@ -42,9 +50,9 @@ export default function IslandList({ journey, state }: { journey: Journey; state
             ) : (
               <div aria-disabled="true">{body}</div>
             )}
-          </li>
+          </RevealItem>
         )
       })}
-    </ol>
+    </RevealList>
   )
 }

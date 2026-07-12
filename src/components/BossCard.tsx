@@ -1,7 +1,11 @@
+import { useEffect, useRef, useState } from 'react'
+import { animate, motion, useReducedMotion } from 'motion/react'
 import type { JourneyId, Problem } from '../lib/types'
 import { useGameStore } from '../store/gameStore'
 import { confirmSolve } from '../lib/verify'
 import AttemptTimer from './AttemptTimer'
+import ParticleBurst from '../motion/ParticleBurst'
+import { SPRING_SNAPPY } from '../motion/transitions'
 
 export default function BossCard({
   problem,
@@ -25,6 +29,7 @@ export default function BossCard({
   const rewindAttempt = useGameStore((s) => s.rewindAttempt)
   const revealPattern = useGameStore((s) => s.revealPattern)
   const revealed = useGameStore((s) => s.revealed)
+  const reduced = useReducedMotion()
 
   const key = `${journeyId}:${problem.slug}`
   const timed = problem.time_limit_seconds !== undefined
@@ -36,8 +41,26 @@ export default function BossCard({
     !solved &&
     (Date.now() - Date.parse(attemptStart)) / 1000 > problem.time_limit_seconds!
 
+  const [defeatBurst, setDefeatBurst] = useState(false)
+  const prevHpPct = useRef(hpPct)
+  const prevSolved = useRef(solved)
+  const cardRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!reduced && cardRef.current && hpPct < prevHpPct.current) {
+      animate(cardRef.current, { x: [0, -6, 6, -4, 4, 0] }, { duration: 0.4, ease: 'easeOut' })
+    }
+    prevHpPct.current = hpPct
+  }, [hpPct, reduced])
+
+  useEffect(() => {
+    if (!prevSolved.current && solved) setDefeatBurst(true)
+    prevSolved.current = solved
+  }, [solved])
+
   return (
-    <div className="rounded-xl border-2 border-red-500/50 bg-red-500/5 p-5 dark:bg-red-950/20">
+    <div ref={cardRef} className="relative rounded-xl border-2 border-red-500/50 bg-red-500/5 p-5 dark:bg-red-950/20">
+      {defeatBurst && <ParticleBurst seed={key} count={24} onComplete={() => setDefeatBurst(false)} />}
       {bossIntro && <p className="mb-3 text-sm italic opacity-80">{bossIntro}</p>}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-display text-lg font-bold">☠ {problem.title} — Island Boss</h3>
@@ -53,7 +76,11 @@ export default function BossCard({
         aria-valuemax={100}
         className="mb-3 h-3 w-full overflow-hidden rounded-full bg-sea-200 dark:bg-sea-800"
       >
-        <div className="h-full bg-red-500 transition-[width]" style={{ width: `${hpPct * 100}%` }} />
+        <motion.div
+          className="h-full bg-red-500"
+          animate={{ width: `${hpPct * 100}%` }}
+          transition={reduced ? { duration: 0 } : SPRING_SNAPPY}
+        />
       </div>
       {timed && (
         <p className="mb-3 text-xs opacity-70">

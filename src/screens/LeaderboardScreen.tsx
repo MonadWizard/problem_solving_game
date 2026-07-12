@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { motion } from 'motion/react'
 import { useAuth } from '../auth/AuthProvider'
 import { supabase } from '../sync/supabaseClient'
 import { useGameStore } from '../store/gameStore'
 import { formatBounty } from '../lib/xp'
+import { RevealList, RevealItem } from '../motion/RevealList'
 
 interface Row {
   display_name: string
@@ -17,6 +19,8 @@ export default function LeaderboardScreen() {
   const [range, setRange] = useState<Range>('alltime')
   const [rows, setRows] = useState<Row[] | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const prevRanks = useRef<Map<string, number>>(new Map())
+  const rankChanges = useRef<Map<string, number>>(new Map())
 
   useEffect(() => {
     if (!user || !supabase) {
@@ -38,6 +42,19 @@ export default function LeaderboardScreen() {
     }
   }, [range, user])
 
+  useEffect(() => {
+    if (!rows) return
+    const changes = new Map<string, number>()
+    rows.forEach((r, i) => {
+      const prev = prevRanks.current.get(r.display_name)
+      if (prev !== undefined && prev !== i) changes.set(r.display_name, prev - i)
+    })
+    rankChanges.current = changes
+    const next = new Map<string, number>()
+    rows.forEach((r, i) => next.set(r.display_name, i))
+    prevRanks.current = next
+  }, [rows])
+
   if (!syncAvailable) {
     return (
       <div className="rounded-lg border border-sea-200 p-6 text-center opacity-70 dark:border-sea-800">
@@ -58,26 +75,40 @@ export default function LeaderboardScreen() {
 
   return (
     <div>
-      <div role="tablist" aria-label="Leaderboard range" className="mb-4 flex gap-2">
+      <div role="tablist" aria-label="Leaderboard range" className="relative mb-4 flex gap-2">
         <button
           role="tab"
           aria-selected={range === 'alltime'}
           onClick={() => setRange('alltime')}
-          className={`rounded-full px-4 py-2 text-sm font-medium ${
-            range === 'alltime' ? 'bg-sea-600 text-white' : 'border border-sea-300 dark:border-sea-700'
+          className={`relative rounded-full px-4 py-2 text-sm font-medium ${
+            range === 'alltime' ? 'text-white' : 'border border-sea-300 dark:border-sea-700'
           }`}
         >
-          All-time
+          {range === 'alltime' && (
+            <motion.span
+              layoutId="leaderboard-tab-pill"
+              className="absolute inset-0 rounded-full bg-sea-600"
+              transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+            />
+          )}
+          <span className="relative">All-time</span>
         </button>
         <button
           role="tab"
           aria-selected={range === 'weekly'}
           onClick={() => setRange('weekly')}
-          className={`rounded-full px-4 py-2 text-sm font-medium ${
-            range === 'weekly' ? 'bg-sea-600 text-white' : 'border border-sea-300 dark:border-sea-700'
+          className={`relative rounded-full px-4 py-2 text-sm font-medium ${
+            range === 'weekly' ? 'text-white' : 'border border-sea-300 dark:border-sea-700'
           }`}
         >
-          This week
+          {range === 'weekly' && (
+            <motion.span
+              layoutId="leaderboard-tab-pill"
+              className="absolute inset-0 rounded-full bg-sea-600"
+              transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+            />
+          )}
+          <span className="relative">This week</span>
         </button>
       </div>
 
@@ -91,25 +122,35 @@ export default function LeaderboardScreen() {
         <p className="text-sm opacity-70">No bounties posted {range === 'weekly' ? 'this week' : 'yet'}.</p>
       )}
       {rows && rows.length > 0 && (
-        <ol className="flex flex-col gap-1">
+        <RevealList as="ol" className="flex flex-col gap-1">
           {rows.map((r, i) => {
             const isSelf = !!local.displayName && r.display_name === local.displayName
+            const change = rankChanges.current.get(r.display_name)
             return (
-              <li
+              <RevealItem
                 key={i}
+                as="li"
                 className={`flex items-center justify-between rounded-lg border px-4 py-2 ${
-                  isSelf ? 'border-gold-500 bg-gold-500/10' : 'border-sea-200 dark:border-sea-800'
+                  isSelf ? 'self-row-glow border-gold-500 bg-gold-500/10' : 'border-sea-200 dark:border-sea-800'
                 }`}
               >
-                <span>
+                <span className="flex items-center gap-2">
                   #{i + 1} {r.display_name}
                   {isSelf && ' (you)'}
+                  {change !== undefined && change !== 0 && (
+                    <span
+                      className={change > 0 ? 'text-emerald-500' : 'text-red-500'}
+                      aria-label={change > 0 ? `Up ${change} ranks` : `Down ${-change} ranks`}
+                    >
+                      {change > 0 ? '▲' : '▼'}
+                    </span>
+                  )}
                 </span>
                 <span className="font-semibold text-gold-600 dark:text-gold-400">{formatBounty(r.total_xp)}</span>
-              </li>
+              </RevealItem>
             )
           })}
-        </ol>
+        </RevealList>
       )}
     </div>
   )

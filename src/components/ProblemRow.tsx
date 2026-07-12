@@ -1,7 +1,10 @@
+import { useEffect, useRef, useState } from 'react'
+import { animate, useReducedMotion } from 'motion/react'
 import type { JourneyId, Problem } from '../lib/types'
 import { useGameStore } from '../store/gameStore'
 import { confirmSolve } from '../lib/verify'
 import AttemptTimer from './AttemptTimer'
+import ParticleBurst from '../motion/ParticleBurst'
 
 const DIFF_STYLE: Record<Problem['difficulty'], string> = {
   easy: 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400',
@@ -25,14 +28,29 @@ export default function ProblemRow({
   const startAttempt = useGameStore((s) => s.startAttempt)
   const revealPattern = useGameStore((s) => s.revealPattern)
   const revealed = useGameStore((s) => s.revealed)
+  const reduced = useReducedMotion()
 
   const key = `${journeyId}:${problem.slug}`
   const timed = problem.time_limit_seconds !== undefined
   const attemptStart = local.attempts[key]
   const isRevealed = revealed.includes(key)
 
+  const [burst, setBurst] = useState(false)
+  const prevSolved = useRef(solved)
+  const solveButtonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!prevSolved.current && solved) {
+      setBurst(true)
+      if (!reduced && solveButtonRef.current) {
+        animate(solveButtonRef.current, { scale: [1, 1.2, 1] }, { duration: 0.4, ease: 'easeOut' })
+      }
+    }
+    prevSolved.current = solved
+  }, [solved, reduced])
+
   return (
-    <li className="flex flex-col gap-3 rounded-lg border border-sea-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:border-sea-800">
+    <div className="relative flex flex-col gap-3 rounded-lg border border-sea-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:border-sea-800">
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-medium">{problem.title}</span>
@@ -83,16 +101,18 @@ export default function ProblemRow({
           Open on LeetCode
         </a>
         <button
+          ref={solveButtonRef}
           type="button"
           disabled={solved}
           onClick={async () => {
             if (await confirmSolve(local.leetcodeUsername, problem.slug)) markSolved(journeyId, problem.slug)
           }}
-          className="rounded bg-gold-500 px-3 py-1.5 text-sm font-semibold text-sea-950 hover:bg-gold-400 disabled:cursor-default disabled:opacity-50"
+          className="rounded bg-gold-500 px-3 py-1.5 text-sm font-semibold text-sea-950 transition-transform hover:bg-gold-400 active:scale-95 disabled:cursor-default disabled:opacity-50"
         >
           {solved ? 'Solved' : 'Mark solved'}
         </button>
       </div>
-    </li>
+      {burst && <ParticleBurst seed={key} onComplete={() => setBurst(false)} />}
+    </div>
   )
 }

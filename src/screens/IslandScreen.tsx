@@ -6,7 +6,7 @@ import { islandComplete, islandProgress, islandUnlocked, quizPassed } from '../l
 import ProblemRow from '../components/ProblemRow'
 import BossCard from '../components/BossCard'
 import QuizModal from '../components/QuizModal'
-import ChestToast from '../components/ChestToast'
+import { RevealList, RevealItem } from '../motion/RevealList'
 
 export default function IslandScreen() {
   const { journeyId: journeyIdParam, islandId } = useParams()
@@ -94,14 +94,16 @@ export default function IslandScreen() {
         <p className="mb-5 rounded-lg border border-gold-500/40 bg-gold-500/5 p-4 text-sm">{story.complete}</p>
       )}
 
-      <ul className="flex flex-col gap-2">
+      <RevealList as="ul" className="flex flex-col gap-2">
         {rest.map((p) => {
           const solve = solveFor(p.slug)
           return (
-            <ProblemRow key={p.slug} problem={p} journeyId={journeyId} solved={!!solve} starred={solve?.starred ?? false} />
+            <RevealItem key={p.slug} as="li">
+              <ProblemRow problem={p} journeyId={journeyId} solved={!!solve} starred={solve?.starred ?? false} />
+            </RevealItem>
           )
         })}
-      </ul>
+      </RevealList>
 
       {boss && (
         <div className="mt-4">
@@ -117,7 +119,6 @@ export default function IslandScreen() {
       )}
 
       {showQuiz && <QuizModal islandId={island.id} journey={journey} onClose={() => setShowQuiz(false)} />}
-      <ChestToast />
     </div>
   )
 }

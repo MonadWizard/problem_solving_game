@@ -56,6 +56,37 @@ input:focus-visible,
   }
 }
 
+/* Ambient background shimmer drift — slow and subtle, CSS-only so the global
+   reduced-motion override below catches it for free (no JS check needed). */
+.route-dash-bg {
+  transform-origin: center;
+  animation: shimmer-drift 18s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes shimmer-drift {
+  from {
+    transform: translateX(-2%);
+  }
+  to {
+    transform: translateX(2%);
+  }
+}
+
+.self-row-glow {
+  animation: self-glow 2.4s ease-in-out infinite;
+}
+
+@keyframes self-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(238, 193, 79, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(238, 193, 79, 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

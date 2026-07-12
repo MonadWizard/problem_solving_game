@@ -1,3 +1,4 @@
+import { motion, useReducedMotion } from 'motion/react'
 import type { Journey, Problem, ProgressState } from '../lib/types'
 import { dueGhosts } from '../lib/ghosts'
 import { currentIsland, islandComplete, islandProgress, islandUnlocked, shipTier } from '../lib/unlocks'
@@ -5,6 +6,7 @@ import { pathHeight, snakeLayout, toPixels } from '../lib/layout'
 import IslandNode from './IslandNode'
 import ShipSprite from './ShipSprite'
 import GhostShip from './GhostShip'
+import { SPRING_SNAPPY } from '../motion/transitions'
 
 const COLS_PER_ROW = 4
 const ROW_HEIGHT = 150
@@ -34,6 +36,7 @@ export default function SeaChart({
   const ghosts = dueGhosts(state.events).filter((g) => bossBySlug.has(g.slug))
 
   const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
+  const reduced = useReducedMotion()
 
   return (
     <svg
@@ -42,6 +45,7 @@ export default function SeaChart({
       role="img"
       aria-label={`${journey.name} route map`}
     >
+      <rect width={VIEW_WIDTH} height={height} fill="url(#water-shimmer)" />
       <path d={pathD} fill="none" stroke="currentColor" strokeOpacity={0.5} strokeWidth={3} strokeLinejoin="round" />
       <path
         d={pathD}
@@ -81,9 +85,13 @@ export default function SeaChart({
         )
       })}
 
-      <g transform={`translate(${shipPoint.x} ${shipPoint.y - 34})`}>
+      <motion.g
+        initial={false}
+        animate={{ x: shipPoint.x, y: shipPoint.y - 34 }}
+        transition={reduced ? { duration: 0 } : SPRING_SNAPPY}
+      >
         <ShipSprite tier={shipTier(j1, state)} />
-      </g>
+      </motion.g>
     </svg>
   )
 }
