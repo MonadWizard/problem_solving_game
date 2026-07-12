@@ -1,5 +1,6 @@
 import type { JourneyId, Problem } from '../lib/types'
 import { useGameStore } from '../store/gameStore'
+import { confirmSolve } from '../lib/verify'
 import AttemptTimer from './AttemptTimer'
 
 export default function BossCard({
@@ -105,7 +106,9 @@ export default function BossCard({
         <button
           type="button"
           disabled={solved}
-          onClick={() => markSolved(journeyId, problem.slug)}
+          onClick={async () => {
+            if (await confirmSolve(local.leetcodeUsername, problem.slug)) markSolved(journeyId, problem.slug)
+          }}
           className="rounded bg-gold-500 px-3 py-1.5 text-sm font-semibold text-sea-950 hover:bg-gold-400 disabled:cursor-default disabled:opacity-50"
         >
           {solved ? (starred ? 'Defeated ⭐' : 'Defeated') : 'Mark solved'}
