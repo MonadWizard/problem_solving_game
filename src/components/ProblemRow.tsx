@@ -32,7 +32,7 @@ export default function ProblemRow({
   const isRevealed = revealed.includes(key)
 
   return (
-    <li className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-sea-200 px-4 py-3 dark:border-sea-800">
+    <li className="flex flex-col gap-3 rounded-lg border border-sea-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:border-sea-800">
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-medium">{problem.title}</span>
