@@ -15,7 +15,7 @@ Build-time env comes from repo **Actions variables** (Settings → Secrets and v
 
 ## Base path
 
-Project pages serve from `https://<user>.github.io/<repo>/`, so Vite `base` must be `/<repo>/`. It is `import.meta/env`-driven: `VITE_BASE` (default `/grand-algorithm/`). **Custom domain or user page**: set `VITE_BASE=/`. Data fetches must use `import.meta.env.BASE_URL` prefix (curriculum loader does).
+Project pages serve from `https://<user>.github.io/<repo>/`, so Vite `base` must be `/<repo>/`. `vite.config.ts` defaults to `/grand-algorithm/` **unless `public/CNAME` exists**, in which case it auto-defaults to `/` (a custom domain serves from its own root) — this detection is load-bearing: a CNAME add/remove with no matching `VITE_BASE` change once shipped a blank site (assets 404ing under `/grand-algorithm/` while served from the domain root). `VITE_BASE` env var still overrides both defaults, needed for a **user/org page** (`<user>.github.io`, no CNAME) which also serves from root. Data fetches must use `import.meta.env.BASE_URL` prefix (curriculum loader does).
 
 ## SPA routing: hash router (chosen deliberately)
 
