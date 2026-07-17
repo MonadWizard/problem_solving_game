@@ -33,8 +33,11 @@ function previousIsland(j: Journey, islandId: string): Island | null {
  * Journey 1: an island unlocks when the previous one is 100% solved AND its
  * pattern-gate quiz is passed (a synced quiz_pass event, so unlock state
  * resumes on any device). Journey 2 isles unlock sequentially by completion.
+ * Journey 3 (The Abyss) has no gating at all — every company island is
+ * unlocked immediately, since companies aren't a learning progression.
  */
 export function islandUnlocked(j: Journey, islandId: string, state: ProgressState): boolean {
+  if (j.id === 3) return true
   const prev = previousIsland(j, islandId)
   if (!prev) return true
   if (!islandComplete(j, prev.id, state)) return false
@@ -46,9 +49,9 @@ export function journeyComplete(j: Journey, state: ProgressState): boolean {
   return j.problems.every((p) => solved.has(p.slug))
 }
 
-/** The Blind Sea stays locked until The First Sea is 100% complete. */
-export function journey2Unlocked(j1: Journey, state: ProgressState): boolean {
-  return journeyComplete(j1, state)
+/** The Blind Sea has no completion gate — available from the start, same as The First Sea. */
+export function journey2Unlocked(_j1: Journey, _state: ProgressState): boolean {
+  return true
 }
 
 export function completedIslands(j: Journey, state: ProgressState): Island[] {

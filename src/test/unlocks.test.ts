@@ -46,8 +46,8 @@ describe('journey 1 unlock chain (completion + quiz_pass gate)', () => {
 })
 
 describe('journey 2 gating', () => {
-  it('unlocks only after journey 1 is 100% complete', () => {
-    expect(journey2Unlocked(j1, progress())).toBe(false)
+  it('is always unlocked, regardless of journey 1 progress', () => {
+    expect(journey2Unlocked(j1, progress())).toBe(true)
     expect(journey2Unlocked(j1, solveAll(j1))).toBe(true)
   })
 
@@ -59,6 +59,19 @@ describe('journey 2 gating', () => {
       ],
     })
     expect(islandUnlocked(j2, 'isle2', state)).toBe(true)
+  })
+})
+
+describe('journey 3 (The Abyss) gating', () => {
+  const j3 = makeJourney(3, [
+    ['google', 3],
+    ['amazon', 3],
+  ])
+
+  it('unlocks every island immediately, no sequential gating, no quiz', () => {
+    const state = progress()
+    expect(islandUnlocked(j3, 'google', state)).toBe(true)
+    expect(islandUnlocked(j3, 'amazon', state)).toBe(true)
   })
 })
 

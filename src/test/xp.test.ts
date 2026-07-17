@@ -33,7 +33,9 @@ describe('level math (level N needs cumulative N*N*100 XP)', () => {
 
 describe('totalXp derivation', () => {
   const j1 = makeJourney(1, [['a', 3]]) // a-p1 250, a-p2 250, a-p3 boss 1000
-  const problems = indexProblems({ journeys: { 1: j1, 2: makeJourney(2, [['z', 1]]) } })
+  const problems = indexProblems({
+    journeys: { 1: j1, 2: makeJourney(2, [['z', 1]]), 3: makeJourney(3, [['z', 1]]) },
+  })
 
   it('sums solved problem XP including boss double', () => {
     const state = progress({

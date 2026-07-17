@@ -19,7 +19,7 @@ export default function IslandScreen() {
     return <p className="p-6 text-center opacity-70">Charting the seas…</p>
   }
 
-  const journeyId = (journeyIdParam === '2' ? 2 : 1) as JourneyId
+  const journeyId = (journeyIdParam === '3' ? 3 : journeyIdParam === '2' ? 2 : 1) as JourneyId
   const journey = curriculum.journeys[journeyId]
   const island = journey.islands.find((i) => i.id === islandId)
 

@@ -3,12 +3,11 @@ import { motion } from 'motion/react'
 import { useGameStore } from '../store/gameStore'
 import { totalXp, xpToNextLevel, formatBounty } from '../lib/xp'
 import { computeStreak } from '../lib/streak'
-import { journey2Unlocked } from '../lib/unlocks'
 import SeaChart from '../components/SeaChart'
 import IslandList from '../components/IslandList'
 import AnimatedNumber from '../motion/AnimatedNumber'
 
-type Tab = 1 | 2 | 'abyss'
+type Tab = 1 | 2 | 3
 
 function usePersisted<T extends string>(key: string, initial: T): [T, (v: T) => void] {
   const [value, setValue] = useState<T>(() => {
@@ -48,11 +47,11 @@ export default function MapScreen() {
 
   const j1 = curriculum.journeys[1]
   const j2 = curriculum.journeys[2]
-  const j2Unlocked = journey2Unlocked(j1, local)
+  const j3 = curriculum.journeys[3]
   const xp = totalXp(local, problems)
   const { level, current, needed } = xpToNextLevel(xp)
   const streak = computeStreak(local.events)
-  const activeTab: Tab = tab === '2' ? 2 : tab === 'abyss' ? 'abyss' : 1
+  const activeTab: Tab = tab === '2' ? 2 : tab === '3' ? 3 : 1
 
   return (
     <div>
@@ -97,15 +96,9 @@ export default function MapScreen() {
           <button
             role="tab"
             aria-selected={activeTab === 2}
-            disabled={!j2Unlocked}
-            title={j2Unlocked ? undefined : 'Complete The First Sea to unlock'}
-            onClick={() => j2Unlocked && setTab('2')}
+            onClick={() => setTab('2')}
             className={`relative rounded-full px-4 py-2 text-sm font-medium ${
-              activeTab === 2
-                ? 'text-white'
-                : j2Unlocked
-                  ? 'border border-sea-300 dark:border-sea-700'
-                  : 'cursor-not-allowed border border-sea-200 opacity-50 dark:border-sea-800'
+              activeTab === 2 ? 'text-white' : 'border border-sea-300 dark:border-sea-700'
             }`}
           >
             {activeTab === 2 && (
@@ -115,66 +108,66 @@ export default function MapScreen() {
                 transition={{ type: 'spring', stiffness: 400, damping: 32 }}
               />
             )}
-            <span className="relative">The Blind Sea {!j2Unlocked && '🔒'}</span>
+            <span className="relative">The Blind Sea</span>
           </button>
           <button
             role="tab"
-            aria-selected={activeTab === 'abyss'}
-            onClick={() => setTab('abyss')}
-            className="relative cursor-not-allowed rounded-full border border-sea-200 px-4 py-2 text-sm font-medium opacity-50 dark:border-sea-800"
-            title="Coming soon"
+            aria-selected={activeTab === 3}
+            onClick={() => setTab('3')}
+            className={`relative rounded-full px-4 py-2 text-sm font-medium ${
+              activeTab === 3 ? 'text-white' : 'border border-sea-300 dark:border-sea-700'
+            }`}
           >
-            The Abyss
+            {activeTab === 3 && (
+              <motion.span
+                layoutId="journey-tab-pill"
+                className="absolute inset-0 rounded-full bg-sea-600"
+                transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+              />
+            )}
+            <span className="relative">The Abyss</span>
           </button>
         </div>
 
-        {activeTab !== 'abyss' && (
-          <div className="relative flex gap-1 rounded-full border border-sea-300 p-1 text-xs dark:border-sea-700">
-            <button
-              onClick={() => setView('map')}
-              aria-pressed={view === 'map'}
-              className={`relative rounded-full px-3 py-1 ${view === 'map' ? 'text-white' : ''}`}
-            >
-              {view === 'map' && (
-                <motion.span
-                  layoutId="map-view-pill"
-                  className="absolute inset-0 rounded-full bg-sea-600"
-                  transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                />
-              )}
-              <span className="relative">Map</span>
-            </button>
-            <button
-              onClick={() => setView('list')}
-              aria-pressed={view === 'list'}
-              className={`relative rounded-full px-3 py-1 ${view === 'list' ? 'text-white' : ''}`}
-            >
-              {view === 'list' && (
-                <motion.span
-                  layoutId="map-view-pill"
-                  className="absolute inset-0 rounded-full bg-sea-600"
-                  transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                />
-              )}
-              <span className="relative">List</span>
-            </button>
-          </div>
-        )}
+        <div className="relative flex gap-1 rounded-full border border-sea-300 p-1 text-xs dark:border-sea-700">
+          <button
+            onClick={() => setView('map')}
+            aria-pressed={view === 'map'}
+            className={`relative rounded-full px-3 py-1 ${view === 'map' ? 'text-white' : ''}`}
+          >
+            {view === 'map' && (
+              <motion.span
+                layoutId="map-view-pill"
+                className="absolute inset-0 rounded-full bg-sea-600"
+                transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+              />
+            )}
+            <span className="relative">Map</span>
+          </button>
+          <button
+            onClick={() => setView('list')}
+            aria-pressed={view === 'list'}
+            className={`relative rounded-full px-3 py-1 ${view === 'list' ? 'text-white' : ''}`}
+          >
+            {view === 'list' && (
+              <motion.span
+                layoutId="map-view-pill"
+                className="absolute inset-0 rounded-full bg-sea-600"
+                transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+              />
+            )}
+            <span className="relative">List</span>
+          </button>
+        </div>
       </div>
 
-      {activeTab === 'abyss' ? (
-        <p className="rounded-lg border border-sea-200 p-6 text-center opacity-70 dark:border-sea-800">
-          The Abyss is uncharted. Coming soon.
-        </p>
-      ) : (
-        <div>
-          {view === 'map' ? (
-            <SeaChart journey={activeTab === 1 ? j1 : j2} j1={j1} state={local} />
-          ) : (
-            <IslandList journey={activeTab === 1 ? j1 : j2} state={local} />
-          )}
-        </div>
-      )}
+      <div>
+        {view === 'map' ? (
+          <SeaChart journey={activeTab === 1 ? j1 : activeTab === 2 ? j2 : j3} j1={j1} state={local} />
+        ) : (
+          <IslandList journey={activeTab === 1 ? j1 : activeTab === 2 ? j2 : j3} state={local} />
+        )}
+      </div>
     </div>
   )
 }

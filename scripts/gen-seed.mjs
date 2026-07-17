@@ -12,7 +12,7 @@ function loadJourney(name) {
   return JSON.parse(readFileSync(new URL(`../public/data/${name}.json`, import.meta.url), 'utf8'))
 }
 
-const journeys = [loadJourney('journey1'), loadJourney('journey2')]
+const journeys = [loadJourney('journey1'), loadJourney('journey2'), loadJourney('journey3')]
 
 const rows = journeys.flatMap((j) =>
   j.problems.map((p) => `  (${j.id}, ${escape(p.slug)}, ${p.xp}, ${escape(p.difficulty)})`),

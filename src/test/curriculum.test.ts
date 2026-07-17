@@ -7,6 +7,7 @@ const read = <T>(name: string): T =>
 
 const j1 = read<Journey>('journey1')
 const j2 = read<Journey>('journey2')
+const j3 = read<Journey>('journey3')
 const items = read<ItemsData>('items')
 const story = read<StoryData>('story')
 
@@ -15,6 +16,7 @@ const XP: Record<Problem['difficulty'], number> = { easy: 100, medium: 250, hard
 // Spec-mandated island sizes, in order.
 const J1_SIZES = [12, 8, 8, 8, 8, 10, 14, 7, 9, 3, 12, 8, 12, 11, 8, 12]
 const J2_SIZES = [10, 9, 9, 9, 10, 9, 9, 10]
+const J3_SIZES = Array(20).fill(15)
 
 function validateJourney(j: Journey, sizes: number[]) {
   it('has contiguous island ordering', () => {
@@ -93,6 +95,24 @@ describe('journey2 — The Blind Sea', () => {
       )
       expect(patterns.size).toBeGreaterThan(2)
     }
+  })
+})
+
+describe('journey3 — The Abyss', () => {
+  it('is journey 3 with 20 islands and 300 problems', () => {
+    expect(j3.id).toBe(3)
+    expect(j3.islands.length).toBe(20)
+    expect(j3.problems.length).toBe(300)
+  })
+  validateJourney(j3, J3_SIZES)
+
+  it('names islands after their company', () => {
+    for (const island of j3.islands) expect(island.name).toMatch(/ Island$/)
+  })
+
+  it('has time limits by difficulty (900/1800/2700), same tiers as journey 2', () => {
+    const LIMIT = { easy: 900, medium: 1800, hard: 2700 }
+    for (const p of j3.problems) expect(p.time_limit_seconds).toBe(LIMIT[p.difficulty])
   })
 })
 

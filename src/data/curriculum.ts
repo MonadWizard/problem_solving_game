@@ -18,9 +18,10 @@ export function loadCurriculum(): Promise<Curriculum> {
   cache ??= Promise.all([
     fetchJson<Journey>('journey1'),
     fetchJson<Journey>('journey2'),
+    fetchJson<Journey>('journey3'),
     fetchJson<ItemsData>('items'),
     fetchJson<StoryData>('story'),
-  ]).then(([j1, j2, items, story]) => ({ journeys: { 1: j1, 2: j2 }, items, story }))
+  ]).then(([j1, j2, j3, items, story]) => ({ journeys: { 1: j1, 2: j2, 3: j3 }, items, story }))
   return cache
 }
 
@@ -29,10 +30,10 @@ export function problemKey(journeyId: JourneyId, slug: string): string {
   return `${journeyId}:${slug}`
 }
 
-/** Index problems of both journeys by problemKey — the lookup XP derivation uses. */
+/** Index problems of all three journeys by problemKey — the lookup XP derivation uses. */
 export function indexProblems(c: Pick<Curriculum, 'journeys'>): Map<string, Problem> {
   const map = new Map<string, Problem>()
-  for (const j of [c.journeys[1], c.journeys[2]]) {
+  for (const j of [c.journeys[1], c.journeys[2], c.journeys[3]]) {
     for (const p of j.problems) map.set(problemKey(j.id, p.slug), p)
   }
   return map

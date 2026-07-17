@@ -51,7 +51,11 @@ const arbProgress: fc.Arbitrary<ProgressState> = fc.record({
 const canon = (p: ProgressState) => mergeProgress(p, p)
 
 const problems = indexProblems({
-  journeys: { 1: makeJourney(1, [['a', 3], ['b', 2]]), 2: makeJourney(2, [['a', 3], ['b', 2]]) },
+  journeys: {
+    1: makeJourney(1, [['a', 3], ['b', 2]]),
+    2: makeJourney(2, [['a', 3], ['b', 2]]),
+    3: makeJourney(3, [['a', 3], ['b', 2]]),
+  },
 })
 
 const solvedKeys = (p: ProgressState) => new Set(p.solves.map((s) => `${s.journeyId}:${s.slug}`))

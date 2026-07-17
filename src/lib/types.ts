@@ -10,7 +10,7 @@ export interface Problem {
   pattern: string
   is_boss: boolean
   leetcode_url: string
-  /** Journey 2 only: timed-attempt limit. */
+  /** Journeys 2 and 3 only: timed-attempt limit. */
   time_limit_seconds?: number
 }
 
@@ -20,7 +20,7 @@ export interface Island {
   order: number
 }
 
-export type JourneyId = 1 | 2
+export type JourneyId = 1 | 2 | 3
 
 export interface Journey {
   id: JourneyId

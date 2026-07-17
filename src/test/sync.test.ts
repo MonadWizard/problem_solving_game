@@ -7,7 +7,11 @@ import { localState, makeEvent, makeJourney, makeSolve } from './fixtures'
 import type { ProgressState } from '../lib/types'
 
 const problems = indexProblems({
-  journeys: { 1: makeJourney(1, [['a', 3], ['b', 3]]), 2: makeJourney(2, [['c', 2]]) },
+  journeys: {
+    1: makeJourney(1, [['a', 3], ['b', 3]]),
+    2: makeJourney(2, [['c', 2]]),
+    3: makeJourney(3, [['d', 2]]),
+  },
 })
 
 const rendered = (s: ProgressState): ProgressState => ({
