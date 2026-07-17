@@ -3,7 +3,7 @@ import { animate, useReducedMotion } from 'motion/react'
 import type { JourneyId, Problem } from '../lib/types'
 import { useGameStore } from '../store/gameStore'
 import { confirmSolve } from '../lib/verify'
-import AttemptTimer from './AttemptTimer'
+import AttemptControls from './AttemptControls'
 import ParticleBurst from '../motion/ParticleBurst'
 
 const DIFF_STYLE: Record<Problem['difficulty'], string> = {
@@ -25,14 +25,12 @@ export default function ProblemRow({
 }) {
   const local = useGameStore((s) => s.local)
   const markSolved = useGameStore((s) => s.markSolved)
-  const startAttempt = useGameStore((s) => s.startAttempt)
   const revealPattern = useGameStore((s) => s.revealPattern)
   const revealed = useGameStore((s) => s.revealed)
   const reduced = useReducedMotion()
 
   const key = `${journeyId}:${problem.slug}`
   const timed = problem.time_limit_seconds !== undefined
-  const attemptStart = local.attempts[key]
   const isRevealed = revealed.includes(key)
 
   const [burst, setBurst] = useState(false)
@@ -79,19 +77,7 @@ export default function ProblemRow({
         )}
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        {timed &&
-          !solved &&
-          (attemptStart ? (
-            <AttemptTimer startedAt={attemptStart} limitSeconds={problem.time_limit_seconds!} />
-          ) : (
-            <button
-              type="button"
-              onClick={() => startAttempt(journeyId, problem.slug)}
-              className="rounded border border-sea-300 px-3 py-1.5 text-sm dark:border-sea-600"
-            >
-              Start attempt
-            </button>
-          ))}
+        <AttemptControls problem={problem} journeyId={journeyId} solved={solved} />
         <a
           href={problem.leetcode_url}
           target="_blank"

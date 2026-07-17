@@ -16,9 +16,9 @@ const XP: Record<Problem['difficulty'], number> = { easy: 100, medium: 250, hard
 // Spec-mandated island sizes, in order.
 const J1_SIZES = [12, 8, 8, 8, 8, 10, 14, 7, 9, 3, 12, 8, 12, 11, 8, 12]
 const J2_SIZES = [10, 9, 9, 9, 10, 9, 9, 10]
-const J3_SIZES = Array(20).fill(15)
+const J3_SIZES = Array(100).fill(50)
 
-function validateJourney(j: Journey, sizes: number[]) {
+function validateJourney(j: Journey, sizes: number[], uniqueScope: 'journey' | 'island' = 'journey') {
   it('has contiguous island ordering', () => {
     expect(j.islands.map((i) => i.order)).toEqual(sizes.map((_, k) => k + 1))
   })
@@ -28,10 +28,21 @@ function validateJourney(j: Journey, sizes: number[]) {
     expect(counts).toEqual(sizes)
   })
 
-  it('has unique slugs', () => {
-    const slugs = j.problems.map((p) => p.slug)
-    expect(new Set(slugs).size).toBe(slugs.length)
-  })
+  if (uniqueScope === 'journey') {
+    it('has unique slugs', () => {
+      const slugs = j.problems.map((p) => p.slug)
+      expect(new Set(slugs).size).toBe(slugs.length)
+    })
+  } else {
+    // Journey 3 (The Abyss) models real interview problems, which are legitimately
+    // reused across companies — so slugs only need to be unique within an island.
+    it('has slugs unique within each island', () => {
+      for (const island of j.islands) {
+        const slugs = j.problems.filter((p) => p.island_id === island.id).map((p) => p.slug)
+        expect(new Set(slugs).size).toBe(slugs.length)
+      }
+    })
+  }
 
   it('has valid problem schema and XP table values', () => {
     const islandIds = new Set(j.islands.map((i) => i.id))
@@ -99,12 +110,12 @@ describe('journey2 — The Blind Sea', () => {
 })
 
 describe('journey3 — The Abyss', () => {
-  it('is journey 3 with 20 islands and 300 problems', () => {
+  it('is journey 3 with 100 islands and 5000 problems', () => {
     expect(j3.id).toBe(3)
-    expect(j3.islands.length).toBe(20)
-    expect(j3.problems.length).toBe(300)
+    expect(j3.islands.length).toBe(100)
+    expect(j3.problems.length).toBe(5000)
   })
-  validateJourney(j3, J3_SIZES)
+  validateJourney(j3, J3_SIZES, 'island')
 
   it('names islands after their company', () => {
     for (const island of j3.islands) expect(island.name).toMatch(/ Island$/)
@@ -113,6 +124,14 @@ describe('journey3 — The Abyss', () => {
   it('has time limits by difficulty (900/1800/2700), same tiers as journey 2', () => {
     const LIMIT = { easy: 900, medium: 1800, hard: 2700 }
     for (const p of j3.problems) expect(p.time_limit_seconds).toBe(LIMIT[p.difficulty])
+  })
+
+  it('tags every problem with illustrative target roles and a recency bucket', () => {
+    for (const p of j3.problems) {
+      expect(Array.isArray(p.roles)).toBe(true)
+      expect(p.roles?.length).toBeGreaterThan(0)
+      expect(['classic, evergreen', 'commonly asked']).toContain(p.recency)
+    }
   })
 })
 

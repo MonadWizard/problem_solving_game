@@ -128,3 +128,30 @@ pairs. After `journey3.json` is added:
 - Ship tier / title effects (both stay Journey-1-only, unchanged).
 - Any UI surfacing of "why these problems for this company" or sourcing methodology (the best-effort
   caveat above is a build note, not player-facing text).
+
+## Addendum (2026-07-18): 100 companies, 50 problems each, role/recency tags
+
+Per explicit user request ("top 100 companies, each company 50 problems... which job title use this").
+This **supersedes** the "20 companies / 300 problems / unique-within-journey" numbers above; everything
+else in this doc (no gate, no story.json, timed-attempt reuse, `pattern` field requirement, sync story)
+still holds.
+
+- **100 companies, 50 problems each (5000 total)**: 16 easy / 24 medium / 10 hard (last hard = boss, 2× XP).
+  The original 20 companies keep their exact, already-shipped 15 problems (including the original boss)
+  as a subset, re-ordered so the boss lands last at order 50 instead of 15.
+- **Slug uniqueness scope changed from journey-wide to per-island.** The original design required slugs
+  unique across all of journey 3. At 5000 problems that would require 5000 distinct, correctly-labeled
+  real LeetCode problems — infeasible without inventing slugs (the confidently-real, well-known pool tops
+  out around 400–450). Real interview question banks also legitimately overlap heavily across companies
+  in reality (e.g. "Two Sum" is asked everywhere), so per-island-only uniqueness is arguably the more
+  honest model, not just the pragmatic one. `src/test/curriculum.test.ts` now checks journey-3 slugs are
+  unique per island; journeys 1 & 2 keep the journey-wide check.
+- **New `roles` (string[]) and `recency` (string) fields per problem** — see the curriculum skill's
+  journey3.json section for the exact scheme. These are generic, difficulty/domain-derived tags, not
+  scraped per-company interview logs — there is no accessible source for that at this scale (same
+  proprietary-data caveat as the original design's problem curation).
+- **Canonical regeneration**: `scripts/gen-abyss-data.mjs` was rewritten in place (still the source of
+  truth, same pattern as `gen-seed.mjs`) — bigger company list, bigger problem pools, the roles/recency
+  tagging, and the reuse-aware per-company selection described above. Re-run it after any further Abyss
+  data edits; it's idempotent (reads the current `journey3.json` to preserve existing per-company slugs
+  before topping up to 50).

@@ -59,6 +59,7 @@ export function localState(overrides: Partial<LocalState> = {}): LocalState {
     leetcodeUsername: null,
     hasteUntil: null,
     attempts: {},
+    pausedAttempts: {},
     queue: [],
     ...overrides,
   }

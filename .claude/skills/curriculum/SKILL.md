@@ -39,7 +39,34 @@ All content lives in `public/data/`. Loaded at runtime by `src/data/curriculum.t
 
 - Journey 1: exactly 16 islands, counts 12,8,8,8,8,10,14,7,9,3,12,8,12,11,8,12 (150 total, the NeetCode 150).
 - Journey 2: 8 islands "Blind Isle 1..8", sizes 10,9,9,9,10,9,9,10 (75 total, the Blind 75), topics deliberately mixed.
-- Unique slugs per journey; every `island_id` exists; `order` contiguous per island; boss last.
+- Journey 3: exactly 100 islands (one per company), 50 problems each (5000 total, 16 easy/24 medium/10 hard incl. boss).
+- Unique slugs per journey for journeys 1 & 2. Journey 3 only requires slugs unique **within an island** —
+  real interview problems are legitimately reused across companies, so the same slug may appear on many
+  company islands. Every `island_id` exists; `order` contiguous per island; boss last.
+
+## journey3.json — The Abyss (company islands)
+
+Same problem shape as above, plus two illustrative fields (no `time_limit_seconds` gating them out — journey 3
+uses the journey-2 time tiers):
+
+```jsonc
+{
+  "roles": ["SWE II / Mid-Level", "Data / ML Engineer"], // target seniority band(s) for this difficulty,
+                                                          // plus one domain-flavor role for the company
+  "recency": "classic, evergreen"                        // "classic, evergreen" | "commonly asked"
+}
+```
+
+These are **generic, difficulty-derived tags** (easy → New Grad/SWE I, medium → SWE II, hard → Senior/Staff,
+boss also gets Staff/Principal; domain flavor — fintech/dataml/gaming/infra/hardware/commerce/saas — adds one
+extra role to medium/hard problems), not scraped per-company interview logs. There is no public, verifiable
+source for "company X asked role Y this problem on date Z" at this scale — don't add specific dated claims
+here; keep new entries within this same illustrative scheme. `public/data/journey3.json` was bulk-generated
+by a one-off script (not checked in) that reused the curated slug pool from journey1/journey3 plus a
+supplemental list of well-known real LeetCode problems, deterministically assigned per company.
+
+Journey 3 companies have **no `story.json` entries** — `IslandScreen` treats story as optional and The Abyss
+is intentionally story-free (companies aren't a narrative progression). Don't add story entries for them.
 
 ## items.json
 

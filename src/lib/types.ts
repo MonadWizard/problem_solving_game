@@ -12,6 +12,10 @@ export interface Problem {
   leetcode_url: string
   /** Journeys 2 and 3 only: timed-attempt limit. */
   time_limit_seconds?: number
+  /** Journey 3 only: illustrative target-role bands (not scraped interview data). */
+  roles?: string[]
+  /** Journey 3 only: "classic, evergreen" vs "commonly asked". */
+  recency?: string
 }
 
 export interface Island {
@@ -81,6 +85,8 @@ export interface LocalState extends ProgressState {
   hasteUntil: string | null
   /** Journey 2 running attempts: slug -> ISO start time. Device-local by design. */
   attempts: Record<string, string>
+  /** Paused attempts: key -> ISO time the pause happened. Presence means paused. Device-local. */
+  pausedAttempts: Record<string, string>
   queue: QueueOp[]
 }
 

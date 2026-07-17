@@ -3,7 +3,7 @@ import { animate, motion, useReducedMotion } from 'motion/react'
 import type { JourneyId, Problem } from '../lib/types'
 import { useGameStore } from '../store/gameStore'
 import { confirmSolve } from '../lib/verify'
-import AttemptTimer from './AttemptTimer'
+import AttemptControls from './AttemptControls'
 import ParticleBurst from '../motion/ParticleBurst'
 import { SPRING_SNAPPY } from '../motion/transitions'
 
@@ -25,7 +25,6 @@ export default function BossCard({
 }) {
   const local = useGameStore((s) => s.local)
   const markSolved = useGameStore((s) => s.markSolved)
-  const startAttempt = useGameStore((s) => s.startAttempt)
   const rewindAttempt = useGameStore((s) => s.rewindAttempt)
   const revealPattern = useGameStore((s) => s.revealPattern)
   const revealed = useGameStore((s) => s.revealed)
@@ -34,12 +33,14 @@ export default function BossCard({
   const key = `${journeyId}:${problem.slug}`
   const timed = problem.time_limit_seconds !== undefined
   const attemptStart = local.attempts[key]
+  const pausedAt = local.pausedAttempts[key]
   const isRevealed = revealed.includes(key)
+  const overtimeClock = pausedAt ? Date.parse(pausedAt) : Date.now()
   const overtime =
     !!timed &&
     !!attemptStart &&
     !solved &&
-    (Date.now() - Date.parse(attemptStart)) / 1000 > problem.time_limit_seconds!
+    (overtimeClock - Date.parse(attemptStart)) / 1000 > problem.time_limit_seconds!
 
   const [defeatBurst, setDefeatBurst] = useState(false)
   const prevHpPct = useRef(hpPct)
@@ -100,19 +101,7 @@ export default function BossCard({
         </p>
       )}
       <div className="flex flex-wrap items-center gap-2">
-        {timed &&
-          !solved &&
-          (attemptStart ? (
-            <AttemptTimer startedAt={attemptStart} limitSeconds={problem.time_limit_seconds!} />
-          ) : (
-            <button
-              type="button"
-              onClick={() => startAttempt(journeyId, problem.slug)}
-              className="rounded border border-sea-300 px-3 py-1.5 text-sm dark:border-sea-600"
-            >
-              Start attempt
-            </button>
-          ))}
+        <AttemptControls problem={problem} journeyId={journeyId} solved={solved} />
         {overtime && (local.items.rewind_fruit ?? 0) > 0 && (
           <button
             type="button"

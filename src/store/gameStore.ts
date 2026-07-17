@@ -51,6 +51,12 @@ export interface GameStore {
   /** Re-solve a ghost ship (spaced-repetition boss). Grants the ghost_win XP bonus. */
   defeatGhost(slug: string): void
   startAttempt(journeyId: JourneyId, slug: string): void
+  /** Freeze the clock on a running attempt. */
+  pauseAttempt(journeyId: JourneyId, slug: string): void
+  /** Continue a paused attempt from where it was frozen. */
+  resumeAttempt(journeyId: JourneyId, slug: string): void
+  /** Clear an attempt entirely (free — no item cost), back to the un-started state. */
+  resetAttempt(journeyId: JourneyId, slug: string): void
   /** Spend a Rewind Fruit to restart a failed timed attempt. */
   rewindAttempt(journeyId: JourneyId, slug: string): boolean
   /** Spend an Oracle Fruit to reveal a problem's pattern. */
@@ -123,11 +129,15 @@ export const useGameStore = create<GameStore>((set, get) => {
       let secondsTaken: number | null = null
       let starred = false
       const attempts = { ...local.attempts }
+      const pausedAttempts = { ...local.pausedAttempts }
       const startedAt = attempts[key]
       if (startedAt) {
-        secondsTaken = Math.max(1, Math.round((now.getTime() - Date.parse(startedAt)) / 1000))
+        const pausedAt = pausedAttempts[key]
+        const endTime = pausedAt ? Date.parse(pausedAt) : now.getTime()
+        secondsTaken = Math.max(1, Math.round((endTime - Date.parse(startedAt)) / 1000))
         starred = problem.time_limit_seconds !== undefined && secondsTaken <= problem.time_limit_seconds
         delete attempts[key]
+        delete pausedAttempts[key]
       }
 
       const solve = { journeyId, slug, solvedAt: now.toISOString(), secondsTaken, starred }
@@ -152,7 +162,7 @@ export const useGameStore = create<GameStore>((set, get) => {
       if (items !== local.items) ops.push({ kind: 'items', items })
 
       commit(
-        { ...local, solves: [...local.solves, solve], events, items, attempts },
+        { ...local, solves: [...local.solves, solve], events, items, attempts, pausedAttempts },
         ops,
         { lastChest: chest, lastBossDrop: bossDrop },
       )
@@ -178,13 +188,54 @@ export const useGameStore = create<GameStore>((set, get) => {
       commit({ ...local, attempts: { ...local.attempts, [key]: new Date().toISOString() } }, [])
     },
 
+    pauseAttempt(journeyId, slug) {
+      const { local } = get()
+      const key = problemKey(journeyId, slug)
+      if (!local.attempts[key] || local.pausedAttempts[key]) return
+      commit(
+        { ...local, pausedAttempts: { ...local.pausedAttempts, [key]: new Date().toISOString() } },
+        [],
+      )
+    },
+
+    resumeAttempt(journeyId, slug) {
+      const { local } = get()
+      const key = problemKey(journeyId, slug)
+      const pausedAt = local.pausedAttempts[key]
+      const startedAt = local.attempts[key]
+      if (!pausedAt || !startedAt) return
+      // Shift the start time forward by however long it sat paused, so the
+      // remaining time (not the wall-clock elapsed) continues from here.
+      const pausedMs = Date.now() - Date.parse(pausedAt)
+      const shiftedStart = new Date(Date.parse(startedAt) + pausedMs).toISOString()
+      const pausedAttempts = { ...local.pausedAttempts }
+      delete pausedAttempts[key]
+      commit(
+        { ...local, attempts: { ...local.attempts, [key]: shiftedStart }, pausedAttempts },
+        [],
+      )
+    },
+
+    resetAttempt(journeyId, slug) {
+      const { local } = get()
+      const key = problemKey(journeyId, slug)
+      if (!local.attempts[key]) return
+      const attempts = { ...local.attempts }
+      const pausedAttempts = { ...local.pausedAttempts }
+      delete attempts[key]
+      delete pausedAttempts[key]
+      commit({ ...local, attempts, pausedAttempts }, [])
+    },
+
     rewindAttempt(journeyId, slug) {
       const { local } = get()
       if ((local.items.rewind_fruit ?? 0) < 1) return false
       const key = problemKey(journeyId, slug)
       const items = { ...local.items, rewind_fruit: local.items.rewind_fruit - 1 }
+      const pausedAttempts = { ...local.pausedAttempts }
+      delete pausedAttempts[key]
       commit(
-        { ...local, items, attempts: { ...local.attempts, [key]: new Date().toISOString() } },
+        { ...local, items, attempts: { ...local.attempts, [key]: new Date().toISOString() }, pausedAttempts },
         [{ kind: 'items', items }],
       )
       return true

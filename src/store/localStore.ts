@@ -12,6 +12,7 @@ export function defaultLocalState(): LocalState {
     leetcodeUsername: null,
     hasteUntil: null,
     attempts: {},
+    pausedAttempts: {},
     queue: [],
   }
 }

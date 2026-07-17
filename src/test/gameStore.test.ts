@@ -101,6 +101,43 @@ describe('timed attempts (journey 2)', () => {
     expect(state().local.items.rewind_fruit).toBe(0)
     expect(state().local.attempts[`2:${slug}`]).toBeDefined()
   })
+
+  it('pauseAttempt freezes the clock and resumeAttempt shifts it back by the paused duration', () => {
+    vi.useFakeTimers()
+    const slug = state().curriculum!.journeys[2].problems[0].slug
+    const key = `2:${slug}`
+    state().startAttempt(2, slug)
+    vi.advanceTimersByTime(30_000)
+    state().pauseAttempt(2, slug)
+    expect(state().local.pausedAttempts[key]).toBeDefined()
+    vi.advanceTimersByTime(60_000) // time passes while paused — should not count
+    state().resumeAttempt(2, slug)
+    expect(state().local.pausedAttempts[key]).toBeUndefined()
+    state().markSolved(2, slug)
+    expect(state().local.solves[0].secondsTaken).toBe(30)
+    vi.useRealTimers()
+  })
+
+  it('pauseAttempt is a no-op with no running attempt; resumeAttempt is a no-op with no pause', () => {
+    const slug = state().curriculum!.journeys[2].problems[0].slug
+    const key = `2:${slug}`
+    state().pauseAttempt(2, slug)
+    expect(state().local.pausedAttempts[key]).toBeUndefined()
+    state().startAttempt(2, slug)
+    state().resumeAttempt(2, slug) // not paused — no-op
+    expect(state().local.attempts[key]).toBeDefined()
+  })
+
+  it('resetAttempt clears the attempt back to the un-started state', () => {
+    const slug = state().curriculum!.journeys[2].problems[0].slug
+    const key = `2:${slug}`
+    state().resetAttempt(2, slug) // no-op, nothing running
+    state().startAttempt(2, slug)
+    state().pauseAttempt(2, slug)
+    state().resetAttempt(2, slug)
+    expect(state().local.attempts[key]).toBeUndefined()
+    expect(state().local.pausedAttempts[key]).toBeUndefined()
+  })
 })
 
 describe('quiz + items + meta', () => {

@@ -3,19 +3,55 @@
 // distinct LeetCode problems. Best-effort curation from public knowledge of
 // commonly-cited company interview questions — not a verified real-time
 // "asked by company" frequency ranking (that data is LeetCode's proprietary
-// company-tag feature). See docs/superpowers/specs/2026-07-18-blind-sea-unlock-and-abyss-design.md.
-import { writeFileSync } from 'node:fs'
+// company-tag feature). See docs/superpowers/specs/2026-07-18-blind-sea-unlock-and-abyss-design.md
+// (original 20-company design) and its "100 companies" addendum (the revision this
+// script implements: 100 companies x 50 problems, `roles`/`recency` tags, and slugs
+// unique per-island rather than journey-wide, since real interview problems are
+// legitimately reused across companies).
+import { readFileSync, writeFileSync } from 'node:fs'
 
 const XP = { easy: 100, medium: 250, hard: 500 }
 const LIMIT = { easy: 900, medium: 1800, hard: 2700 }
+const EASY_N = 16, MEDIUM_N = 24, HARD_N = 10 // per company; last hard = boss
 
+// [name, domain] — domain drives the illustrative extra `roles` tag (see DOMAIN_ROLE).
 const COMPANIES = [
-  'Google', 'Amazon', 'Meta', 'Microsoft', 'Apple', 'Netflix', 'Uber', 'LinkedIn',
-  'Bloomberg', 'Adobe', 'Salesforce', 'Oracle', 'ByteDance', 'Airbnb', 'Goldman Sachs',
-  'DoorDash', 'X', 'Pinterest', 'Nvidia', 'Walmart',
+  ['Google', 'generalist'], ['Amazon', 'commerce'], ['Meta', 'social'], ['Microsoft', 'generalist'],
+  ['Apple', 'generalist'], ['Netflix', 'dataml'], ['Uber', 'commerce'], ['LinkedIn', 'social'],
+  ['Bloomberg', 'fintech'], ['Adobe', 'saas'], ['Salesforce', 'saas'], ['Oracle', 'generalist'],
+  ['ByteDance', 'dataml'], ['Airbnb', 'commerce'], ['Goldman Sachs', 'fintech'], ['DoorDash', 'commerce'],
+  ['X', 'social'], ['Pinterest', 'social'], ['Nvidia', 'hardware'], ['Walmart', 'commerce'],
+  ['Stripe', 'fintech'], ['PayPal', 'fintech'], ['Spotify', 'dataml'], ['Snap', 'social'],
+  ['Dropbox', 'saas'], ['Atlassian', 'saas'], ['Square', 'fintech'], ['Visa', 'fintech'],
+  ['Mastercard', 'fintech'], ['Capital One', 'fintech'], ['JPMorgan Chase', 'fintech'],
+  ['Morgan Stanley', 'fintech'], ['Citadel', 'fintech'], ['Two Sigma', 'fintech'],
+  ['Jane Street', 'fintech'], ['Databricks', 'dataml'], ['Snowflake', 'dataml'], ['Palantir', 'dataml'],
+  ['Robinhood', 'fintech'], ['Coinbase', 'fintech'], ['Instacart', 'commerce'], ['Lyft', 'commerce'],
+  ['Booking.com', 'commerce'], ['Expedia', 'commerce'], ['Yelp', 'commerce'], ['Zillow', 'commerce'],
+  ['Wayfair', 'commerce'], ['Etsy', 'commerce'], ['eBay', 'commerce'], ['Shopify', 'commerce'],
+  ['Twilio', 'saas'], ['Zoom', 'saas'], ['Slack', 'saas'], ['Box', 'saas'], ['ServiceNow', 'saas'],
+  ['Workday', 'saas'], ['SAP', 'saas'], ['VMware', 'infra'], ['Cisco', 'infra'], ['IBM', 'generalist'],
+  ['Intel', 'hardware'], ['AMD', 'hardware'], ['Qualcomm', 'hardware'], ['Samsung', 'hardware'],
+  ['Sony', 'hardware'], ['Electronic Arts', 'gaming'], ['Riot Games', 'gaming'], ['Roblox', 'gaming'],
+  ['Epic Games', 'gaming'], ['Activision Blizzard', 'gaming'], ['Tesla', 'hardware'],
+  ['SpaceX', 'hardware'], ['Rivian', 'hardware'], ['Waymo', 'dataml'], ['Affirm', 'fintech'],
+  ['Chime', 'fintech'], ['SoFi', 'fintech'], ['Intuit', 'saas'], ['Splunk', 'infra'],
+  ['Datadog', 'infra'], ['MongoDB', 'infra'], ['Elastic', 'infra'], ['Confluent', 'infra'],
+  ['HashiCorp', 'infra'], ['Okta', 'infra'], ['CrowdStrike', 'infra'], ['Palo Alto Networks', 'infra'],
+  ['Cloudflare', 'infra'], ['Akamai', 'infra'], ['Disney', 'generalist'], ['Reddit', 'social'],
+  ['Quora', 'social'], ['Yahoo', 'generalist'], ['Dell', 'hardware'], ['Broadcom', 'hardware'],
+  ['Arista Networks', 'infra'], ['Nutanix', 'infra'], ['Wix', 'saas'], ['GoDaddy', 'saas'],
+  ['Figma', 'saas'],
 ]
+if (COMPANIES.length !== 100) throw new Error(`expected 100 companies, got ${COMPANIES.length}`)
 
-// [slug, title, pattern]
+const DOMAIN_ROLE = {
+  fintech: 'Quant / Fintech SWE', dataml: 'Data / ML Engineer', gaming: 'Game / Engine SWE',
+  infra: 'Infra / Security Engineer', hardware: 'Hardware / Systems SWE',
+  commerce: 'Product / Backend SWE', saas: 'Enterprise SWE', social: null, generalist: null,
+}
+
+// [slug, title, pattern] — original 20-company pool (still real, still valid).
 const EASY = [
   ['two-sum', 'Two Sum', 'hash map'],
   ['valid-parentheses', 'Valid Parentheses', 'stack'],
@@ -326,80 +362,240 @@ const HARD = [
   ['cut-off-trees-for-golf-event', 'Cut Off Trees for Golf Event', 'graph'],
 ]
 
-function assertUnique(name, pool) {
-  const seen = new Set()
-  for (const [slug] of pool) {
-    if (seen.has(slug)) throw new Error(`duplicate slug in ${name}: ${slug}`)
-    seen.add(slug)
+// Supplemental problems added for the 100-company expansion — same bar (real,
+// well-known, correctly labeled), just more of them for per-company variety.
+const EASY_EXTRA = [
+  ['contains-duplicate-ii', 'Contains Duplicate II', 'hash map'],
+  ['longest-common-prefix', 'Longest Common Prefix', 'string'],
+  ['hamming-distance', 'Hamming Distance', 'bit manipulation'],
+  ['number-complement', 'Number Complement', 'bit manipulation'],
+  ['power-of-four', 'Power of Four', 'bit manipulation'],
+  ['n-th-tribonacci-number', 'N-th Tribonacci Number', 'dp'],
+  ['cousins-in-binary-tree', 'Cousins in Binary Tree', 'tree'],
+  ['univalued-binary-tree', 'Univalued Binary Tree', 'tree'],
+  ['leaf-similar-trees', 'Leaf-Similar Trees', 'tree'],
+  ['defanging-an-ip-address', 'Defanging an IP Address', 'string'],
+  ['unique-morse-code-words', 'Unique Morse Code Words', 'hash set'],
+  ['shuffle-the-array', 'Shuffle the Array', 'array'],
+  ['running-sum-of-1d-array', 'Running Sum of 1d Array', 'prefix sum'],
+  ['richest-customer-wealth', 'Richest Customer Wealth', 'array'],
+  ['number-of-good-pairs', 'Number of Good Pairs', 'hash map'],
+  ['kids-with-the-greatest-number-of-candies', 'Kids With the Greatest Number of Candies', 'array'],
+  ['find-pivot-index', 'Find Pivot Index', 'prefix sum'],
+  ['backspace-string-compare', 'Backspace String Compare', 'two pointers'],
+  ['middle-of-the-linked-list', 'Middle of the Linked List', 'fast & slow pointers'],
+  ['palindrome-linked-list', 'Palindrome Linked List', 'linked list'],
+  ['sum-of-left-leaves', 'Sum of Left Leaves', 'tree'],
+  ['average-of-levels-in-binary-tree', 'Average of Levels in Binary Tree', 'bfs'],
+  ['minimum-depth-of-binary-tree', 'Minimum Depth of Binary Tree', 'tree'],
+  ['find-all-numbers-disappeared-in-an-array', 'Find All Numbers Disappeared in an Array', 'array'],
+  ['find-the-index-of-the-first-occurrence-in-a-string', 'Find the Index of the First Occurrence in a String', 'string'],
+  ['remove-duplicates-from-sorted-list', 'Remove Duplicates from Sorted List', 'linked list'],
+  ['maximum-product-of-three-numbers', 'Maximum Product of Three Numbers', 'sorting'],
+  ['distribute-candies', 'Distribute Candies', 'hash set'],
+  ['detect-capital-use', 'Detect Capital', 'string'],
+  ['construct-the-rectangle', 'Construct the Rectangle', 'math'],
+  ['employee-importance', 'Employee Importance', 'graph dfs'],
+  ['fibonacci-number', 'Fibonacci Number', 'dp'],
+  ['design-hashmap', 'Design HashMap', 'design'],
+  ['design-hashset', 'Design HashSet', 'design'],
+]
+
+const MEDIUM_EXTRA = [
+  ['two-city-scheduling', 'Two City Scheduling', 'greedy'],
+  ['letter-case-permutation', 'Letter Case Permutation', 'backtracking'],
+  ['continuous-subarray-sum', 'Continuous Subarray Sum', 'prefix sum'],
+  ['next-greater-element-ii', 'Next Greater Element II', 'monotonic stack'],
+  ['01-matrix', '01 Matrix', 'graph bfs'],
+  ['top-k-frequent-words', 'Top K Frequent Words', 'heap'],
+  ['find-k-closest-elements', 'Find K Closest Elements', 'binary search'],
+  ['delete-and-earn', 'Delete and Earn', '1-d dp'],
+  ['populating-next-right-pointers-in-each-node', 'Populating Next Right Pointers in Each Node', 'tree'],
+  ['sum-root-to-leaf-numbers', 'Sum Root to Leaf Numbers', 'dfs'],
+  ['delete-node-in-a-bst', 'Delete Node in a BST', 'bst'],
+  ['insert-into-a-binary-search-tree', 'Insert into a Binary Search Tree', 'bst'],
+  ['construct-binary-tree-from-inorder-and-postorder-traversal', 'Construct Binary Tree from Inorder and Postorder Traversal', 'tree'],
+  ['maximum-width-of-binary-tree', 'Maximum Width of Binary Tree', 'bfs'],
+  ['all-nodes-distance-k-in-binary-tree', 'All Nodes Distance K in Binary Tree', 'graph bfs'],
+  ['swap-nodes-in-pairs', 'Swap Nodes in Pairs', 'linked list'],
+  ['remove-duplicates-from-sorted-list-ii', 'Remove Duplicates from Sorted List II', 'linked list'],
+  ['4sum', '4Sum', 'two pointers'],
+  ['next-permutation', 'Next Permutation', 'array'],
+  ['find-first-and-last-position-of-element-in-sorted-array', 'Find First and Last Position of Element in Sorted Array', 'binary search'],
+  ['search-in-rotated-sorted-array-ii', 'Search in Rotated Sorted Array II', 'binary search'],
+  ['capacity-to-ship-packages-within-d-days', 'Capacity To Ship Packages Within D Days', 'binary search on answer'],
+  ['evaluate-division', 'Evaluate Division', 'graph dfs'],
+  ['is-graph-bipartite', 'Is Graph Bipartite?', 'graph bfs/dfs'],
+  ['all-paths-from-source-to-target', 'All Paths From Source to Target', 'graph dfs'],
+  ['single-number-iii', 'Single Number III', 'bit manipulation'],
+  ['game-of-life', 'Game of Life', 'matrix'],
+  ['maximal-square', 'Maximal Square', '2-d dp'],
+  ['perfect-squares', 'Perfect Squares', 'dp'],
+  ['minimum-falling-path-sum', 'Minimum Falling Path Sum', '2-d dp'],
+  ['out-of-boundary-paths', 'Out of Boundary Paths', 'dp'],
+  ['knight-probability-in-chessboard', 'Knight Probability in Chessboard', 'dp'],
+  ['path-sum-ii', 'Path Sum II', 'backtracking'],
+  ['contains-duplicate-iii', 'Contains Duplicate III', 'sliding window'],
+]
+
+const HARD_EXTRA = [
+  ['sudoku-solver', 'Sudoku Solver', 'backtracking'],
+  ['find-minimum-in-rotated-sorted-array-ii', 'Find Minimum in Rotated Sorted Array II', 'binary search'],
+  ['split-array-largest-sum', 'Split Array Largest Sum', 'binary search on answer'],
+  ['critical-connections-in-a-network', 'Critical Connections in a Network', 'graph dfs'],
+  ['subarrays-with-k-different-integers', 'Subarrays with K Different Integers', 'sliding window'],
+  ['palindrome-partitioning-ii', 'Palindrome Partitioning II', 'dp'],
+  ['vertical-order-traversal-of-a-binary-tree', 'Vertical Order Traversal of a Binary Tree', 'tree'],
+  ['lfu-cache', 'LFU Cache', 'design'],
+  ['minimum-number-of-refueling-stops', 'Minimum Number of Refueling Stops', 'heap'],
+  ['shortest-path-visiting-all-nodes', 'Shortest Path Visiting All Nodes', 'bitmask bfs'],
+  ['trapping-rain-water-ii', 'Trapping Rain Water II', 'heap'],
+  ['number-of-islands-ii', 'Number of Islands II', 'union find'],
+]
+
+function dedupe(name, ...groups) {
+  const seen = new Map()
+  for (const group of groups) {
+    for (const [slug, title, pattern] of group) {
+      if (!seen.has(slug)) seen.set(slug, { slug, title, pattern })
+    }
+  }
+  return [...seen.values()]
+}
+const POOL = {
+  easy: dedupe('easy', EASY, EASY_EXTRA),
+  medium: dedupe('medium', MEDIUM, MEDIUM_EXTRA),
+  hard: dedupe('hard', HARD, HARD_EXTRA),
+}
+if (POOL.easy.length < EASY_N) throw new Error(`easy pool too small: ${POOL.easy.length}`)
+if (POOL.medium.length < MEDIUM_N) throw new Error(`medium pool too small: ${POOL.medium.length}`)
+if (POOL.hard.length < HARD_N) throw new Error(`hard pool too small: ${POOL.hard.length}`)
+
+// "Iconic" slugs get the classic_evergreen recency bucket; the rest are commonly_asked.
+const ICONIC = new Set([
+  'two-sum', 'valid-parentheses', 'merge-two-sorted-lists', 'best-time-to-buy-and-sell-stock',
+  'reverse-linked-list', 'contains-duplicate', 'invert-binary-tree', 'climbing-stairs',
+  'maximum-subarray', 'longest-substring-without-repeating-characters', '3sum', 'group-anagrams',
+  'top-k-frequent-elements', 'product-of-array-except-self', 'merge-k-sorted-lists',
+  'trapping-rain-water', 'word-break', 'coin-change', 'number-of-islands', 'course-schedule',
+  'clone-graph', 'lru-cache', 'median-of-two-sorted-arrays', 'word-ladder',
+  'serialize-and-deserialize-binary-tree', 'longest-palindromic-substring', 'house-robber',
+  'jump-game', 'spiral-matrix', 'rotate-image', 'set-matrix-zeroes', 'validate-binary-search-tree',
+  'binary-tree-level-order-traversal', 'kth-largest-element-in-an-array', 'subsets', 'permutations',
+  'combination-sum', 'word-search', 'n-queens', 'sliding-window-maximum',
+  'largest-rectangle-in-histogram', 'edit-distance', 'longest-increasing-subsequence',
+  'unique-paths', 'decode-ways', 'binary-search', 'search-in-rotated-sorted-array',
+  'find-minimum-in-rotated-sorted-array', 'two-sum-ii-input-array-is-sorted', 'linked-list-cycle',
+  'remove-nth-node-from-end-of-list', 'add-two-numbers', 'copy-list-with-random-pointer',
+  'alien-dictionary', 'min-stack', 'evaluate-reverse-polish-notation', 'generate-parentheses',
+  'daily-temperatures',
+])
+
+function mulberry32(seed) {
+  let a = seed
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
 }
-assertUnique('EASY', EASY)
-assertUnique('MEDIUM', MEDIUM)
-assertUnique('HARD', HARD)
-
-const EASY_PER = 5
-const MEDIUM_PER = 7
-const HARD_PER = 3 // includes the boss
-
-if (EASY.length < COMPANIES.length * EASY_PER) throw new Error(`need ${COMPANIES.length * EASY_PER} easy, have ${EASY.length}`)
-if (MEDIUM.length < COMPANIES.length * MEDIUM_PER) throw new Error(`need ${COMPANIES.length * MEDIUM_PER} medium, have ${MEDIUM.length}`)
-if (HARD.length < COMPANIES.length * HARD_PER) throw new Error(`need ${COMPANIES.length * HARD_PER} hard, have ${HARD.length}`)
+function seedFor(str) {
+  let h = 0
+  for (let i = 0; i < str.length; i++) h = (Math.imul(h, 31) + str.charCodeAt(i)) | 0
+  return h
+}
+function pick(rng, arr, n, exclude) {
+  const avail = arr.filter((p) => !exclude.has(p.slug))
+  const used = new Set()
+  const out = []
+  while (out.length < n && used.size < avail.length) {
+    const cand = avail[Math.floor(rng() * avail.length)]
+    if (!used.has(cand.slug)) { used.add(cand.slug); out.push(cand) }
+  }
+  return out
+}
+function roles(difficulty, isBoss, domain) {
+  const band = difficulty === 'easy' ? 'New Grad / SWE I' : difficulty === 'medium' ? 'SWE II / Mid-Level' : 'Senior / Staff'
+  const out = [band]
+  if (isBoss) out.push('Staff / Principal')
+  const flavor = DOMAIN_ROLE[domain]
+  if (flavor && difficulty !== 'easy') out.push(flavor)
+  return out
+}
+const recency = (slug) => (ICONIC.has(slug) ? 'classic, evergreen' : 'commonly asked')
+function toProblem(p, islandId, order, isBoss, domain) {
+  return {
+    slug: p.slug, title: p.title, difficulty: p.difficulty, island_id: islandId, order,
+    xp: XP[p.difficulty] * (isBoss ? 2 : 1), pattern: p.pattern, is_boss: isBoss,
+    leetcode_url: `https://leetcode.com/problems/${p.slug}/`,
+    time_limit_seconds: LIMIT[p.difficulty], roles: roles(p.difficulty, isBoss, domain), recency: recency(p.slug),
+  }
+}
 
 const slugify = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 
+// The first 20 companies keep their exact, already-shipped 15 problems (re-ordered so
+// the boss lands last at order 50 instead of 15) — everything else is newly picked.
+const existingUrl = new URL('../public/data/journey3.json', import.meta.url)
+let existing = null
+try {
+  existing = JSON.parse(readFileSync(existingUrl, 'utf8'))
+} catch { /* first run without a prior journey3.json is fine */ }
+
 const islands = []
 const problems = []
-const allSlugs = new Set()
 
-COMPANIES.forEach((company, idx) => {
-  const islandId = slugify(company)
-  islands.push({ id: islandId, name: `${company} Island`, order: idx + 1 })
+COMPANIES.forEach(([name, domain], idx) => {
+  const id = slugify(name)
+  islands.push({ id, name: `${name} Island`, order: idx + 1 })
 
-  const easyChunk = EASY.slice(idx * EASY_PER, (idx + 1) * EASY_PER)
-  const mediumChunk = MEDIUM.slice(idx * MEDIUM_PER, (idx + 1) * MEDIUM_PER)
-  const hardChunk = HARD.slice(idx * HARD_PER, (idx + 1) * HARD_PER)
+  const kept = existing?.problems.filter((p) => p.island_id === id) ?? []
+  const keptEasy = kept.filter((p) => p.difficulty === 'easy')
+  const keptMedium = kept.filter((p) => p.difficulty === 'medium')
+  const keptHardNonBoss = kept.filter((p) => p.difficulty === 'hard' && !p.is_boss)
+  const keptBoss = kept.find((p) => p.is_boss)
 
-  const chunk = [
-    ...easyChunk.map(([slug, title, pattern]) => ({ slug, title, pattern, difficulty: 'easy' })),
-    ...mediumChunk.map(([slug, title, pattern]) => ({ slug, title, pattern, difficulty: 'medium' })),
-    ...hardChunk.map(([slug, title, pattern]) => ({ slug, title, pattern, difficulty: 'hard' })),
-  ]
+  const rng = mulberry32(seedFor(id))
+  const exclude = new Set(kept.map((p) => p.slug))
+  const newEasy = pick(rng, POOL.easy, EASY_N - keptEasy.length, exclude)
+  newEasy.forEach((p) => exclude.add(p.slug))
+  const newMedium = pick(rng, POOL.medium, MEDIUM_N - keptMedium.length, exclude)
+  newMedium.forEach((p) => exclude.add(p.slug))
+  const newHard = pick(rng, POOL.hard, HARD_N - (keptBoss ? 1 : 0) - keptHardNonBoss.length, exclude)
+  newHard.forEach((p) => exclude.add(p.slug))
+  let boss = keptBoss
+  if (!boss) {
+    const bossCandidates = POOL.hard.filter((p) => !exclude.has(p.slug))
+    boss = bossCandidates[Math.floor(rng() * bossCandidates.length)]
+  }
 
-  chunk.forEach((p, k) => {
-    const order = k + 1
-    const isBoss = order === chunk.length
-    if (allSlugs.has(p.slug)) throw new Error(`global duplicate slug: ${p.slug}`)
-    allSlugs.add(p.slug)
-    problems.push({
-      slug: p.slug,
-      title: p.title,
-      difficulty: p.difficulty,
-      island_id: islandId,
-      order,
-      xp: XP[p.difficulty] * (isBoss ? 2 : 1),
-      pattern: p.pattern,
-      is_boss: isBoss,
-      leetcode_url: `https://leetcode.com/problems/${p.slug}/`,
-      time_limit_seconds: LIMIT[p.difficulty],
-    })
-  })
+  const easyAll = [...keptEasy, ...newEasy]
+  const mediumAll = [...keptMedium, ...newMedium]
+  const hardAll = [...keptHardNonBoss, ...newHard]
+
+  let order = 1
+  for (const p of easyAll) problems.push(toProblem(p, id, order++, false, domain))
+  for (const p of mediumAll) problems.push(toProblem(p, id, order++, false, domain))
+  for (const p of hardAll) problems.push(toProblem(p, id, order++, false, domain))
+  problems.push(toProblem(boss, id, order++, true, domain))
 })
 
 const journey3 = { id: 3, name: 'The Abyss', islands, problems }
 
 // Sanity checks mirroring src/test/curriculum.test.ts invariants.
-if (islands.length !== 20) throw new Error(`expected 20 islands, got ${islands.length}`)
-if (problems.length !== 300) throw new Error(`expected 300 problems, got ${problems.length}`)
+if (islands.length !== 100) throw new Error(`expected 100 islands, got ${islands.length}`)
+if (problems.length !== 5000) throw new Error(`expected 5000 problems, got ${problems.length}`)
 for (const island of islands) {
-  const count = problems.filter((p) => p.island_id === island.id).length
-  if (count !== 15) throw new Error(`${island.id} has ${count} problems, expected 15`)
-  const bosses = problems.filter((p) => p.island_id === island.id && p.is_boss)
+  const probs = problems.filter((p) => p.island_id === island.id)
+  if (probs.length !== 50) throw new Error(`${island.id} has ${probs.length} problems, expected 50`)
+  if (new Set(probs.map((p) => p.slug)).size !== probs.length) throw new Error(`${island.id} has duplicate slugs`)
+  const bosses = probs.filter((p) => p.is_boss)
   if (bosses.length !== 1) throw new Error(`${island.id} has ${bosses.length} bosses, expected 1`)
-  const last = problems.filter((p) => p.island_id === island.id).sort((a, b) => a.order - b.order).at(-1)
+  const last = [...probs].sort((a, b) => a.order - b.order).at(-1)
   if (!last.is_boss) throw new Error(`${island.id} boss is not last`)
   if (last.difficulty !== 'hard') throw new Error(`${island.id} boss is not hard difficulty`)
 }
-if (new Set(problems.map((p) => p.slug)).size !== 300) throw new Error('duplicate slugs across journey3')
 
 writeFileSync(new URL('../public/data/journey3.json', import.meta.url), JSON.stringify(journey3, null, 2) + '\n')
 console.log(`OK: wrote journey3.json — ${islands.length} islands, ${problems.length} problems.`)
