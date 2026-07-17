@@ -26,7 +26,7 @@ Trade-off accepted: uglier URLs, no per-route SSR/OG (irrelevant for a logged-in
 
 ## Supabase OAuth redirect URLs (console, manual)
 
-Authentication → URL Configuration: Site URL = the Pages URL **including trailing slash** (e.g. `https://user.github.io/grand-algorithm/`); add the same to Redirect URLs, plus `http://localhost:5173/` for dev. Enable Google + GitHub providers with their own client id/secret (their callback is the `https://<project>.supabase.co/auth/v1/callback` URL, not ours).
+Authentication → URL Configuration: Site URL = the Pages URL **including trailing slash** (e.g. `https://user.github.io/grand-algorithm/`); add the same to Redirect URLs, plus `http://localhost:5173/` for dev. Enable the Google provider with its own client id/secret (its callback is the `https://<project>.supabase.co/auth/v1/callback` URL, not ours). Email/GitHub providers are left off — the client only offers "Continue with Google," which avoids Supabase's email confirmation flow (SMTP setup, rate limits, expiring links) entirely.
 
 ## Release checklist
 

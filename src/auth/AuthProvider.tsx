@@ -5,10 +5,6 @@ import { makeSupabaseCloud } from '../sync/supabaseCloud'
 import { attachSyncEngine, onLogin, reconcileOnOpen } from '../sync/engine'
 import { useGameStore } from '../store/gameStore'
 
-export interface AuthResult {
-  error: string | null
-}
-
 interface AuthContextValue {
   user: User | null
   /** True until the initial session check (and merge, if logged in) settles. */
@@ -16,9 +12,6 @@ interface AuthContextValue {
   /** False when Supabase env vars are absent — guest-only deployment. */
   syncAvailable: boolean
   signInWithGoogle(): Promise<void>
-  signInWithGithub(): Promise<void>
-  signInWithEmail(email: string, password: string): Promise<AuthResult>
-  signUpWithEmail(email: string, password: string): Promise<AuthResult>
   signOut(): Promise<void>
 }
 
@@ -29,8 +22,6 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider')
   return ctx
 }
-
-const NO_SYNC_ERROR = 'Sync is not configured for this deployment — play on as a guest.'
 
 // Redirect back to the app's own base URL: query params (the OAuth ?code=)
 // precede the hash, so the PKCE callback is picked up on any hash route.
@@ -103,19 +94,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     syncAvailable,
     async signInWithGoogle() {
       await supabase?.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirectTo() } })
-    },
-    async signInWithGithub() {
-      await supabase?.auth.signInWithOAuth({ provider: 'github', options: { redirectTo: redirectTo() } })
-    },
-    async signInWithEmail(email, password) {
-      if (!supabase) return { error: NO_SYNC_ERROR }
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      return { error: error?.message ?? null }
-    },
-    async signUpWithEmail(email, password) {
-      if (!supabase) return { error: NO_SYNC_ERROR }
-      const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: redirectTo() } })
-      return { error: error?.message ?? null }
     },
     async signOut() {
       await supabase?.auth.signOut()

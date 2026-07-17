@@ -1,26 +1,9 @@
-import { useId, useState } from 'react'
+import { useId } from 'react'
 import { useAuth } from '../auth/AuthProvider'
 
 export default function AuthModal({ onClose }: { onClose: () => void }) {
-  const { signInWithGoogle, signInWithGithub, signInWithEmail, signUpWithEmail } = useAuth()
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  const [confirmSent, setConfirmSent] = useState(false)
+  const { signInWithGoogle } = useAuth()
   const titleId = useId()
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setBusy(true)
-    setError(null)
-    const result = mode === 'signin' ? await signInWithEmail(email, password) : await signUpWithEmail(email, password)
-    setBusy(false)
-    if (result.error) setError(result.error)
-    else if (mode === 'signup') setConfirmSent(true)
-    else onClose()
-  }
 
   return (
     <div
@@ -48,78 +31,13 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
-        {confirmSent ? (
-          <p className="text-sm">Check your email to confirm your account, then sign in.</p>
-        ) : (
-          <>
-            <div className="mb-4 flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={() => void signInWithGoogle()}
-                className="rounded border border-sea-300 px-3 py-2 text-sm font-medium hover:bg-sea-100 dark:border-sea-600 dark:hover:bg-sea-800"
-              >
-                Continue with Google
-              </button>
-              <button
-                type="button"
-                onClick={() => void signInWithGithub()}
-                className="rounded border border-sea-300 px-3 py-2 text-sm font-medium hover:bg-sea-100 dark:border-sea-600 dark:hover:bg-sea-800"
-              >
-                Continue with GitHub
-              </button>
-            </div>
-
-            <div className="mb-4 flex items-center gap-2 text-xs opacity-60">
-              <div className="h-px flex-1 bg-current" />
-              or
-              <div className="h-px flex-1 bg-current" />
-            </div>
-
-            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-              <label className="flex flex-col gap-1 text-sm">
-                Email
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="rounded border border-sea-300 bg-transparent px-2 py-1 dark:border-sea-600"
-                />
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                Password
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="rounded border border-sea-300 bg-transparent px-2 py-1 dark:border-sea-600"
-                />
-              </label>
-              {error && (
-                <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-                  {error}
-                </p>
-              )}
-              <button
-                type="submit"
-                disabled={busy}
-                className="rounded bg-gold-500 px-3 py-2 text-sm font-semibold text-sea-950 hover:bg-gold-400 disabled:opacity-60"
-              >
-                {mode === 'signin' ? 'Sign in' : 'Create account'}
-              </button>
-            </form>
-
-            <button
-              type="button"
-              onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-              className="mt-3 text-xs underline opacity-80 hover:opacity-100"
-            >
-              {mode === 'signin' ? "New here? Create an account" : 'Already sailing with us? Sign in'}
-            </button>
-          </>
-        )}
+        <button
+          type="button"
+          onClick={() => void signInWithGoogle()}
+          className="flex w-full items-center justify-center gap-2 rounded border border-sea-300 px-3 py-2 text-sm font-medium hover:bg-sea-100 dark:border-sea-600 dark:hover:bg-sea-800"
+        >
+          Continue with Google
+        </button>
       </div>
     </div>
   )

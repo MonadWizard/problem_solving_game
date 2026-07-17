@@ -10,12 +10,11 @@ Free tier is enough for this project. Guest mode works with none of this done �
 
 SQL Editor → paste and run `supabase/schema.sql` (tables, RLS policies, XP triggers, merge RPCs, leaderboard functions). Then paste and run `supabase/seed.sql` (generated from the curriculum JSON — regenerate with `node scripts/gen-seed.mjs` whenever an island/problem changes, and re-run it; it's an idempotent upsert).
 
-## 3. Enable auth providers
+## 3. Enable auth provider
 
-Authentication → Providers:
-- **Google**: create an OAuth client in Google Cloud Console, set the authorized redirect URI to the value Supabase shows on this page, paste client id/secret back into Supabase.
-- **GitHub**: same flow via a GitHub OAuth App (Settings → Developer settings → OAuth Apps).
-- **Email**: already on by default (used as the fallback).
+The app only offers **Continue with Google** — no email/password, no GitHub. This sidesteps Supabase's email confirmation flow entirely (no SMTP setup, no email rate limits, no expired-token links to debug).
+
+Authentication → Providers → **Google**: create an OAuth client in Google Cloud Console, set the authorized redirect URI to the value Supabase shows on this page, paste client id/secret back into Supabase. Leave Email/GitHub providers off (or disabled) — the client never calls them.
 
 Authentication → URL Configuration:
 - **Site URL**: your Pages URL including trailing slash, e.g. `https://<user>.github.io/grand-algorithm/`.
