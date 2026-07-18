@@ -73,6 +73,46 @@ input:focus-visible,
   }
 }
 
+.wave-layer {
+  will-change: transform;
+}
+
+.wave-layer-1 {
+  opacity: 0.1;
+  animation: wave-flow-right 42s linear infinite;
+  animation-delay: -11s;
+}
+
+.wave-layer-2 {
+  opacity: 0.09;
+  animation: wave-flow-left 61s linear infinite;
+  animation-delay: -34s;
+}
+
+.wave-layer-3 {
+  opacity: 0.12;
+  animation: wave-flow-right 78s linear infinite;
+  animation-delay: -5s;
+}
+
+.wave-layer-4 {
+  opacity: 0.15;
+  animation: wave-flow-left 97s linear infinite;
+  animation-delay: -52s;
+}
+
+@keyframes wave-flow-right {
+  to {
+    transform: translateX(240px);
+  }
+}
+
+@keyframes wave-flow-left {
+  to {
+    transform: translateX(-240px);
+  }
+}
+
 .self-row-glow {
   animation: self-glow 2.4s ease-in-out infinite;
 }

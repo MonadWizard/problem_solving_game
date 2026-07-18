@@ -38,13 +38,42 @@ export default function Layout() {
   return (
     <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col px-3 sm:px-6">
       <TextureDefs />
-      {/* Ambient background: very low-opacity water shimmer, purely decorative. */}
-      <svg
-        className="pointer-events-none fixed inset-0 -z-10 h-full w-full"
-        aria-hidden
-        focusable="false"
-      >
-        <rect width="100%" height="100%" fill="url(#water-shimmer)" className="route-dash-bg" />
+      {/* Ambient background: deep-ocean gradient + four wave-swell layers, each its own
+          speed/direction/delay so they never look synchronized. Purely decorative. */}
+      <svg className="pointer-events-none fixed inset-0 -z-10 h-full w-full" aria-hidden focusable="false">
+        <rect width="100%" height="100%" fill="url(#ocean-depth)" className="route-dash-bg" />
+        <rect
+          x={-240}
+          y="10%"
+          width="calc(100% + 480px)"
+          height={60}
+          fill="url(#wave-swell-1)"
+          className="wave-layer wave-layer-1"
+        />
+        <rect
+          x={-240}
+          y="35%"
+          width="calc(100% + 480px)"
+          height={60}
+          fill="url(#wave-swell-2)"
+          className="wave-layer wave-layer-2"
+        />
+        <rect
+          x={-240}
+          y="60%"
+          width="calc(100% + 480px)"
+          height={60}
+          fill="url(#wave-swell-3)"
+          className="wave-layer wave-layer-3"
+        />
+        <rect
+          x={-240}
+          y="85%"
+          width="calc(100% + 480px)"
+          height={60}
+          fill="url(#wave-swell-4)"
+          className="wave-layer wave-layer-4"
+        />
       </svg>
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-sea-200 py-3 dark:border-sea-800">
         <NavLink to="/" className="font-display text-xl font-bold tracking-wide text-sea-700 dark:text-gold-300">
