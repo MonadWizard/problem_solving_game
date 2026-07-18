@@ -12,7 +12,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 
 const XP = { easy: 100, medium: 250, hard: 500 }
 const LIMIT = { easy: 900, medium: 1800, hard: 2700 }
-const EASY_N = 16, MEDIUM_N = 24, HARD_N = 10 // per company; last hard = boss
+const EASY_N = 16, MEDIUM_N = 24, HARD_N = 20 // per company; last hard = boss
 
 // [name, domain] — domain drives the illustrative extra `roles` tag (see DOMAIN_ROLE).
 const COMPANIES = [
@@ -453,6 +453,53 @@ const HARD_EXTRA = [
   ['number-of-islands-ii', 'Number of Islands II', 'union find'],
 ]
 
+// New for the 2026-07-18 Abyss expansion — genuinely Hard-difficulty design/OOD LeetCode problems
+// (verified: NOT Medium ones like LRU Cache or Design Twitter).
+const DESIGN_HARD = [
+  ['design-in-memory-file-system', 'Design In-Memory File System', 'design/trie'],
+  ['design-search-autocomplete-system', 'Design Search Autocomplete System', 'design/trie'],
+  ['all-oone-data-structure', 'All O`one Data Structure', 'design/hash+linked list'],
+  ['design-skiplist', 'Design Skiplist', 'design'],
+  ['max-stack', 'Max Stack', 'design/stack'],
+  ['range-module', 'Range Module', 'design/intervals'],
+  ['design-excel-sum-formula', 'Design Excel Sum Formula', 'design/graph'],
+  ['data-stream-as-disjoint-intervals', 'Data Stream as Disjoint Intervals', 'design/intervals'],
+]
+
+// Genuinely newer (2022-2023) real LeetCode Hard problems, for the "recently popular" recency bucket.
+const RECENT_HARD = [
+  ['count-the-number-of-ideal-arrays', 'Count the Number of Ideal Arrays', 'combinatorics/dp'],
+  ['minimum-obstacle-removal-to-reach-corner', 'Minimum Obstacle Removal to Reach Corner', '0-1 bfs'],
+  ['longest-increasing-subsequence-ii', 'Longest Increasing Subsequence II', 'segment tree/dp'],
+  ['count-of-integers', 'Count of Integers', 'digit dp'],
+  ['minimum-time-to-visit-a-cell-in-a-grid', 'Minimum Time to Visit a Cell In a Grid', 'dijkstra/bfs'],
+  ['design-graph-with-shortest-path-calculator', 'Design Graph With Shortest Path Calculator', 'design/dijkstra'],
+  ['minimum-cost-to-make-array-equal', 'Minimum Cost to Make Array Equal', 'binary search/prefix sum'],
+  ['count-subarrays-with-median-k', 'Count Subarrays With Median K', 'prefix sum/hash map'],
+]
+
+// Genuinely newer (2021-2023) real LeetCode Medium problems, for the "recently popular" recency bucket.
+const RECENT_MEDIUM = [
+  ['maximum-value-of-an-ordered-triplet-ii', 'Maximum Value of an Ordered Triplet II', 'prefix max'],
+  ['design-a-food-rating-system', 'Design a Food Rating System', 'design/heap'],
+  ['minimum-number-of-operations-to-make-array-continuous', 'Minimum Number of Operations to Make Array Continuous', 'sliding window/binary search'],
+  ['minimum-number-of-operations-to-make-array-empty', 'Minimum Number of Operations to Make Array Empty', 'hash map/greedy'],
+  ['stock-price-fluctuation', 'Stock Price Fluctuation', 'design/heap'],
+  ['design-a-number-container-system', 'Design a Number Container System', 'design/heap'],
+]
+
+// Real HackerRank problems confirmed Hard (or "Advanced", HackerRank's tier above Hard) via direct fetch
+// of each problem page. Codeforces was evaluated too but its difficulty ratings could not be reliably
+// verified through available tools (the site blocks direct fetching and the public API is too large to
+// search page-by-page for arbitrary older problems) — dropped rather than guessed. `source: 'codeforces'`
+// stays a valid value on the Problem type for a future attempt with better tooling.
+const HR_HARD = [
+  ['find-the-running-median', 'Find the Running Median', 'two heaps'],
+  ['count-strings', 'Count Strings', 'dp/automaton'],
+  ['array-and-simple-queries', 'Array and Simple Queries', 'array/queries'],
+  ['string-function-calculation', 'String Function Calculation', 'suffix array/dp'],
+]
+
 function dedupe(name, ...groups) {
   const seen = new Map()
   for (const group of groups) {
@@ -491,6 +538,13 @@ const ICONIC = new Set([
   'daily-temperatures',
 ])
 
+const toPool = (tuples, difficulty) => tuples.map(([slug, title, pattern]) => ({ slug, title, pattern, difficulty }))
+const DESIGN_HARD_POOL = toPool(DESIGN_HARD, 'hard')
+const RECENT_HARD_POOL = toPool(RECENT_HARD, 'hard')
+const RECENT_MEDIUM_POOL = toPool(RECENT_MEDIUM, 'medium')
+const HR_HARD_POOL = toPool(HR_HARD, 'hard')
+const RECENT_MEDIUM_SLUGS = new Set(RECENT_MEDIUM_POOL.map((p) => p.slug))
+
 function mulberry32(seed) {
   let a = seed
   return function () {
@@ -528,8 +582,10 @@ function toProblem(p, islandId, order, isBoss, domain) {
   return {
     slug: p.slug, title: p.title, difficulty: p.difficulty, island_id: islandId, order,
     xp: XP[p.difficulty] * (isBoss ? 2 : 1), pattern: p.pattern, is_boss: isBoss,
-    leetcode_url: `https://leetcode.com/problems/${p.slug}/`,
-    time_limit_seconds: LIMIT[p.difficulty], roles: roles(p.difficulty, isBoss, domain), recency: recency(p.slug),
+    leetcode_url: p._url ?? p.leetcode_url ?? `https://leetcode.com/problems/${p.slug}/`,
+    time_limit_seconds: LIMIT[p.difficulty], roles: roles(p.difficulty, isBoss, domain),
+    recency: p._recency ?? p.recency ?? recency(p.slug),
+    ...((p._source ?? p.source) ? { source: p._source ?? p.source } : {}),
   }
 }
 
@@ -562,8 +618,34 @@ COMPANIES.forEach(([name, domain], idx) => {
   newEasy.forEach((p) => exclude.add(p.slug))
   const newMedium = pick(rng, POOL.medium, MEDIUM_N - keptMedium.length, exclude)
   newMedium.forEach((p) => exclude.add(p.slug))
-  const newHard = pick(rng, POOL.hard, HARD_N - (keptBoss ? 1 : 0) - keptHardNonBoss.length, exclude)
-  newHard.forEach((p) => exclude.add(p.slug))
+  const hardNeeded = HARD_N - (keptBoss ? 1 : 0) - keptHardNonBoss.length
+  const newHard = []
+  if (hardNeeded > 0) {
+    const designPicked = pick(rng, DESIGN_HARD_POOL, Math.min(3, hardNeeded), exclude)
+    designPicked.forEach((p) => exclude.add(p.slug))
+    newHard.push(...designPicked)
+
+    const recentPicked = pick(rng, RECENT_HARD_POOL, Math.min(3, Math.max(0, hardNeeded - newHard.length)), exclude)
+    recentPicked.forEach((p) => exclude.add(p.slug))
+    newHard.push(...recentPicked.map((p) => ({ ...p, _recency: 'recently popular' })))
+
+    const hrPicked = pick(rng, HR_HARD_POOL, Math.min(3, Math.max(0, hardNeeded - newHard.length)), exclude)
+    hrPicked.forEach((p) => exclude.add(p.slug))
+    newHard.push(
+      ...hrPicked.map((p) => ({
+        ...p,
+        _source: 'hackerrank',
+        _url: `https://www.hackerrank.com/challenges/${p.slug}/problem`,
+      })),
+    )
+
+    const remaining = hardNeeded - newHard.length
+    if (remaining > 0) {
+      const classicPicked = pick(rng, POOL.hard, remaining, exclude)
+      classicPicked.forEach((p) => exclude.add(p.slug))
+      newHard.push(...classicPicked)
+    }
+  }
   let boss = keptBoss
   if (!boss) {
     const bossCandidates = POOL.hard.filter((p) => !exclude.has(p.slug))
@@ -572,6 +654,20 @@ COMPANIES.forEach(([name, domain], idx) => {
 
   const easyAll = [...keptEasy, ...newEasy]
   const mediumAll = [...keptMedium, ...newMedium]
+  const haveRecentMedium = mediumAll.filter((p) => RECENT_MEDIUM_SLUGS.has(p.slug)).length
+  const swapTarget = Math.min(3, RECENT_MEDIUM_POOL.length) - haveRecentMedium
+  if (swapTarget > 0) {
+    const swappable = mediumAll.filter((p) => !ICONIC.has(p.slug) && !RECENT_MEDIUM_SLUGS.has(p.slug))
+    const swapCount = Math.min(swapTarget, swappable.length)
+    if (swapCount > 0) {
+      const swapIn = pick(rng, RECENT_MEDIUM_POOL, swapCount, exclude)
+      swapIn.forEach((p) => exclude.add(p.slug))
+      const toRemove = new Set(swappable.slice(0, swapIn.length).map((p) => p.slug))
+      const kept2 = mediumAll.filter((p) => !toRemove.has(p.slug))
+      mediumAll.length = 0
+      mediumAll.push(...kept2, ...swapIn.map((p) => ({ ...p, _recency: 'recently popular' })))
+    }
+  }
   const hardAll = [...keptHardNonBoss, ...newHard]
 
   let order = 1
@@ -585,16 +681,19 @@ const journey3 = { id: 3, name: 'The Abyss', islands, problems }
 
 // Sanity checks mirroring src/test/curriculum.test.ts invariants.
 if (islands.length !== 100) throw new Error(`expected 100 islands, got ${islands.length}`)
-if (problems.length !== 5000) throw new Error(`expected 5000 problems, got ${problems.length}`)
+if (problems.length !== 6000) throw new Error(`expected 6000 problems, got ${problems.length}`)
 for (const island of islands) {
   const probs = problems.filter((p) => p.island_id === island.id)
-  if (probs.length !== 50) throw new Error(`${island.id} has ${probs.length} problems, expected 50`)
+  if (probs.length !== 60) throw new Error(`${island.id} has ${probs.length} problems, expected 60`)
   if (new Set(probs.map((p) => p.slug)).size !== probs.length) throw new Error(`${island.id} has duplicate slugs`)
   const bosses = probs.filter((p) => p.is_boss)
   if (bosses.length !== 1) throw new Error(`${island.id} has ${bosses.length} bosses, expected 1`)
   const last = [...probs].sort((a, b) => a.order - b.order).at(-1)
   if (!last.is_boss) throw new Error(`${island.id} boss is not last`)
   if (last.difficulty !== 'hard') throw new Error(`${island.id} boss is not hard difficulty`)
+  if (probs.some((p) => p.difficulty === undefined || Number.isNaN(p.xp))) {
+    throw new Error(`${island.id} has a problem with missing difficulty or NaN xp`)
+  }
 }
 
 writeFileSync(new URL('../public/data/journey3.json', import.meta.url), JSON.stringify(journey3, null, 2) + '\n')
