@@ -12,6 +12,12 @@ const DIFF_STYLE: Record<Problem['difficulty'], string> = {
   hard: 'bg-red-500/20 text-red-700 dark:text-red-400',
 }
 
+const OPEN_LABEL: Record<'leetcode' | 'codeforces' | 'hackerrank', string> = {
+  leetcode: 'Open on LeetCode',
+  codeforces: 'Open on Codeforces',
+  hackerrank: 'Open on HackerRank',
+}
+
 export default function ProblemRow({
   problem,
   journeyId,
@@ -58,6 +64,23 @@ export default function ProblemRow({
           </span>
           <span className="text-xs opacity-70">{problem.xp} XP</span>
         </div>
+        {(problem.roles?.length || problem.recency) && (
+          <div className="flex flex-wrap items-center gap-1">
+            {problem.roles?.map((role) => (
+              <span
+                key={role}
+                className="rounded-full bg-sea-500/10 px-2 py-0.5 text-xs text-sea-700 dark:bg-sea-400/10 dark:text-sea-300"
+              >
+                {role}
+              </span>
+            ))}
+            {problem.recency && (
+              <span className="rounded-full bg-sea-500/10 px-2 py-0.5 text-xs text-sea-700 dark:bg-sea-400/10 dark:text-sea-300">
+                {problem.recency}
+              </span>
+            )}
+          </div>
+        )}
         {timed && (
           <p className="text-xs opacity-70">
             Pattern:{' '}
@@ -84,14 +107,16 @@ export default function ProblemRow({
           rel="noopener noreferrer"
           className="rounded border border-sea-300 px-3 py-1.5 text-sm hover:bg-sea-100 dark:border-sea-600 dark:hover:bg-sea-800"
         >
-          Open on LeetCode
+          {OPEN_LABEL[problem.source ?? 'leetcode']}
         </a>
         <button
           ref={solveButtonRef}
           type="button"
           disabled={solved}
           onClick={async () => {
-            if (await confirmSolve(local.leetcodeUsername, problem.slug)) markSolved(journeyId, problem.slug)
+            const shouldVerify = !problem.source || problem.source === 'leetcode'
+            const proceed = shouldVerify ? await confirmSolve(local.leetcodeUsername, problem.slug) : true
+            if (proceed) markSolved(journeyId, problem.slug)
           }}
           className="rounded bg-gold-500 px-3 py-1.5 text-sm font-semibold text-sea-950 transition-transform hover:bg-gold-400 active:scale-95 disabled:cursor-default disabled:opacity-50"
         >
