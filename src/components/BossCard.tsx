@@ -7,6 +7,12 @@ import AttemptControls from './AttemptControls'
 import ParticleBurst from '../motion/ParticleBurst'
 import { SPRING_SNAPPY } from '../motion/transitions'
 
+const OPEN_LABEL: Record<'leetcode' | 'codeforces' | 'hackerrank', string> = {
+  leetcode: 'Open on LeetCode',
+  codeforces: 'Open on Codeforces',
+  hackerrank: 'Open on HackerRank',
+}
+
 export default function BossCard({
   problem,
   journeyId,
@@ -69,6 +75,23 @@ export default function BossCard({
           {problem.difficulty} · {problem.xp} XP
         </span>
       </div>
+      {(problem.roles?.length || problem.recency) && (
+        <div className="mb-3 flex flex-wrap items-center gap-1">
+          {problem.roles?.map((role) => (
+            <span
+              key={role}
+              className="rounded-full bg-sea-500/10 px-2 py-0.5 text-xs text-sea-700 dark:bg-sea-400/10 dark:text-sea-300"
+            >
+              {role}
+            </span>
+          ))}
+          {problem.recency && (
+            <span className="rounded-full bg-sea-500/10 px-2 py-0.5 text-xs text-sea-700 dark:bg-sea-400/10 dark:text-sea-300">
+              {problem.recency}
+            </span>
+          )}
+        </div>
+      )}
       <div
         role="progressbar"
         aria-label="Boss HP"
@@ -117,13 +140,15 @@ export default function BossCard({
           rel="noopener noreferrer"
           className="rounded border border-sea-300 px-3 py-1.5 text-sm hover:bg-sea-100 dark:border-sea-600 dark:hover:bg-sea-800"
         >
-          Open on LeetCode
+          {OPEN_LABEL[problem.source ?? 'leetcode']}
         </a>
         <button
           type="button"
           disabled={solved}
           onClick={async () => {
-            if (await confirmSolve(local.leetcodeUsername, problem.slug)) markSolved(journeyId, problem.slug)
+            const shouldVerify = !problem.source || problem.source === 'leetcode'
+            const proceed = shouldVerify ? await confirmSolve(local.leetcodeUsername, problem.slug) : true
+            if (proceed) markSolved(journeyId, problem.slug)
           }}
           className="rounded bg-gold-500 px-3 py-1.5 text-sm font-semibold text-sea-950 hover:bg-gold-400 disabled:cursor-default disabled:opacity-50"
         >
