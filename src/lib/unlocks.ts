@@ -68,6 +68,13 @@ export function shipTier(j1: Journey, state: ProgressState): ShipTier {
   return 'dinghy'
 }
 
+export const SHIP_TIER_LABEL: Record<ShipTier, string> = {
+  dinghy: 'Dinghy',
+  sloop: 'Sloop',
+  brig: 'Brig',
+  galleon: 'Galleon',
+}
+
 /** First unlocked-but-incomplete island — where the ship is sailing. */
 export function currentIsland(j: Journey, state: ProgressState): Island | null {
   for (const island of [...j.islands].sort((a, b) => a.order - b.order)) {

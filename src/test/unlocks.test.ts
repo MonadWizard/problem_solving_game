@@ -6,6 +6,7 @@ import {
   islandUnlocked,
   journey2Unlocked,
   shipTier,
+  SHIP_TIER_LABEL,
 } from '../lib/unlocks'
 import { makeEvent, makeJourney, makeSolve, progress, solveAll } from './fixtures'
 
@@ -89,5 +90,12 @@ describe('ship progression', () => {
     expect(shipTier(big, solveIslands(9))).toBe('brig')
     expect(shipTier(big, solveIslands(14))).toBe('galleon')
     expect(shipTier(big, solveIslands(16))).toBe('galleon')
+  })
+
+  it('has a display label for every tier', () => {
+    expect(SHIP_TIER_LABEL.dinghy).toBe('Dinghy')
+    expect(SHIP_TIER_LABEL.sloop).toBe('Sloop')
+    expect(SHIP_TIER_LABEL.brig).toBe('Brig')
+    expect(SHIP_TIER_LABEL.galleon).toBe('Galleon')
   })
 })
