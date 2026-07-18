@@ -16,7 +16,7 @@ const XP: Record<Problem['difficulty'], number> = { easy: 100, medium: 250, hard
 // Spec-mandated island sizes, in order.
 const J1_SIZES = [12, 8, 8, 8, 8, 10, 14, 7, 9, 3, 12, 8, 12, 11, 8, 12]
 const J2_SIZES = [10, 9, 9, 9, 10, 9, 9, 10]
-const J3_SIZES = Array(100).fill(50)
+const J3_SIZES = Array(100).fill(60)
 
 function validateJourney(j: Journey, sizes: number[], uniqueScope: 'journey' | 'island' = 'journey') {
   it('has contiguous island ordering', () => {
@@ -52,7 +52,13 @@ function validateJourney(j: Journey, sizes: number[], uniqueScope: 'journey' | '
       expect(['easy', 'medium', 'hard']).toContain(p.difficulty)
       expect(islandIds.has(p.island_id)).toBe(true)
       expect(p.pattern.length).toBeGreaterThan(0)
-      expect(p.leetcode_url).toBe(`https://leetcode.com/problems/${p.slug}/`)
+      if (p.source === 'hackerrank') {
+        expect(p.leetcode_url).toBe(`https://www.hackerrank.com/challenges/${p.slug}/problem`)
+      } else if (p.source === 'codeforces') {
+        expect(p.leetcode_url).toMatch(/^https:\/\/codeforces\.com\//)
+      } else {
+        expect(p.leetcode_url).toBe(`https://leetcode.com/problems/${p.slug}/`)
+      }
       expect(p.xp).toBe(XP[p.difficulty] * (p.is_boss ? 2 : 1))
     }
   })
@@ -110,10 +116,10 @@ describe('journey2 — The Blind Sea', () => {
 })
 
 describe('journey3 — The Abyss', () => {
-  it('is journey 3 with 100 islands and 5000 problems', () => {
+  it('is journey 3 with 100 islands and 6000 problems', () => {
     expect(j3.id).toBe(3)
     expect(j3.islands.length).toBe(100)
-    expect(j3.problems.length).toBe(5000)
+    expect(j3.problems.length).toBe(6000)
   })
   validateJourney(j3, J3_SIZES, 'island')
 
@@ -130,7 +136,22 @@ describe('journey3 — The Abyss', () => {
     for (const p of j3.problems) {
       expect(Array.isArray(p.roles)).toBe(true)
       expect(p.roles?.length).toBeGreaterThan(0)
-      expect(['classic, evergreen', 'commonly asked']).toContain(p.recency)
+      expect(['classic, evergreen', 'commonly asked', 'recently popular']).toContain(p.recency)
+    }
+  })
+
+  it('has a valid source when present', () => {
+    for (const p of j3.problems) {
+      if (p.source !== undefined) expect(['leetcode', 'codeforces', 'hackerrank']).toContain(p.source)
+    }
+  })
+
+  it('has 16 easy / 24 medium / 20 hard per company', () => {
+    for (const island of j3.islands) {
+      const probs = j3.problems.filter((p) => p.island_id === island.id)
+      const counts = { easy: 0, medium: 0, hard: 0 }
+      for (const p of probs) counts[p.difficulty as 'easy' | 'medium' | 'hard']++
+      expect(counts).toEqual({ easy: 16, medium: 24, hard: 20 })
     }
   })
 })
