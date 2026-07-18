@@ -12,6 +12,7 @@ async function freshStore() {
     local: defaultLocalState(),
     lastChest: null,
     lastBossDrop: null,
+    lastShipTierUp: null,
     revealed: [],
   })
   await useGameStore.getState().init()
@@ -67,6 +68,43 @@ describe('gameStore.markSolved', () => {
     state().markSolved(1, 'two-sum')
     const bonus = state().local.events.find((e) => e.type === 'haste_bonus')
     expect(bonus?.refSlug).toBe('1:two-sum')
+  })
+})
+
+describe('ship tier-up detection', () => {
+  it('sets lastShipTierUp only on the solve that crosses a tier threshold', () => {
+    const j1 = state().curriculum!.journeys[1]
+    const islands = [...j1.islands].sort((a, b) => a.order - b.order).slice(0, 4)
+    const problemsByIsland = islands.map((isl) => j1.problems.filter((p) => p.island_id === isl.id))
+
+    problemsByIsland.forEach((probs, islandIdx) => {
+      const isLastIsland = islandIdx === problemsByIsland.length - 1
+      probs.forEach((problem, problemIdx) => {
+        const isFinalSolve = isLastIsland && problemIdx === probs.length - 1
+        state().markSolved(1, problem.slug)
+        if (isFinalSolve) {
+          expect(state().lastShipTierUp).toBe('sloop')
+        } else {
+          expect(state().lastShipTierUp).toBeNull()
+        }
+      })
+    })
+  })
+
+  it('does not re-fire on the next solve once the toast would have been dismissed', () => {
+    const j1 = state().curriculum!.journeys[1]
+    const islands = [...j1.islands].sort((a, b) => a.order - b.order).slice(0, 4)
+    for (const isl of islands) {
+      for (const p of j1.problems.filter((pr) => pr.island_id === isl.id)) {
+        state().markSolved(1, p.slug)
+      }
+    }
+    expect(state().lastShipTierUp).toBe('sloop')
+
+    const fifthIsland = [...j1.islands].sort((a, b) => a.order - b.order)[4]
+    const nextProblem = j1.problems.find((p) => p.island_id === fifthIsland.id)!
+    state().markSolved(1, nextProblem.slug)
+    expect(state().lastShipTierUp).toBeNull()
   })
 })
 

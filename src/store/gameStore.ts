@@ -13,6 +13,7 @@ import { defaultLocalState, loadLocal, saveLocal } from './localStore'
 import { mergeProgress } from '../sync/merge'
 import { pickWeighted } from '../lib/rng'
 import { streakAtRisk } from '../lib/streak'
+import { shipTier, type ShipTier } from '../lib/unlocks'
 
 /** Sync engine registers here to flush the queue after each local write. */
 let notifySync: (() => void) | null = null
@@ -41,6 +42,8 @@ export interface GameStore {
   /** Last chest drop id, for the toast. */
   lastChest: string | null
   lastBossDrop: string | null
+  /** Ship tier just reached by the most recent solve, for the celebration toast. Never persisted or synced. */
+  lastShipTierUp: ShipTier | null
   /** Oracle-revealed problem keys (device-local, not synced). */
   revealed: string[]
 
@@ -83,6 +86,7 @@ export const useGameStore = create<GameStore>((set, get) => {
     local: defaultLocalState(),
     lastChest: null,
     lastBossDrop: null,
+    lastShipTierUp: null,
     revealed: [],
 
     async init() {
@@ -114,6 +118,9 @@ export const useGameStore = create<GameStore>((set, get) => {
       const problem = problems.get(problemKey(journeyId, slug))
       if (!curriculum || !problem) return
       if (local.solves.some((s) => s.journeyId === journeyId && s.slug === slug)) return
+
+      const j1 = curriculum.journeys[1]
+      const prevTier = shipTier(j1, local)
 
       const now = new Date()
       const key = problemKey(journeyId, slug)
@@ -161,11 +168,14 @@ export const useGameStore = create<GameStore>((set, get) => {
       }
       if (items !== local.items) ops.push({ kind: 'items', items })
 
-      commit(
-        { ...local, solves: [...local.solves, solve], events, items, attempts, pausedAttempts },
-        ops,
-        { lastChest: chest, lastBossDrop: bossDrop },
-      )
+      const nextLocal = { ...local, solves: [...local.solves, solve], events, items, attempts, pausedAttempts }
+      const nextTier = shipTier(j1, nextLocal)
+
+      commit(nextLocal, ops, {
+        lastChest: chest,
+        lastBossDrop: bossDrop,
+        lastShipTierUp: nextTier !== prevTier ? nextTier : null,
+      })
     },
 
     passQuiz(islandId) {
@@ -285,7 +295,7 @@ export const useGameStore = create<GameStore>((set, get) => {
     },
 
     dismissChest() {
-      set({ lastChest: null, lastBossDrop: null })
+      set({ lastChest: null, lastBossDrop: null, lastShipTierUp: null })
     },
   }
 })
