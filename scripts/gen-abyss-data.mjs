@@ -457,7 +457,7 @@ function dedupe(name, ...groups) {
   const seen = new Map()
   for (const group of groups) {
     for (const [slug, title, pattern] of group) {
-      if (!seen.has(slug)) seen.set(slug, { slug, title, pattern })
+      if (!seen.has(slug)) seen.set(slug, { slug, title, pattern, difficulty: name })
     }
   }
   return [...seen.values()]
