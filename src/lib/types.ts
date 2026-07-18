@@ -99,6 +99,7 @@ export interface ItemDef {
   kind: 'fruit' | 'utility' | 'cosmetic' | 'ship_part'
   description: string
   effect: string
+  icon?: string
 }
 
 export interface ChestDrop {

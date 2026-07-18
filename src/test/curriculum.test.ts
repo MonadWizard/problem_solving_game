@@ -163,6 +163,12 @@ describe('items.json', () => {
       expect(ids).toContain(required)
     }
   })
+  it('gives every item an emoji icon', () => {
+    for (const item of items.items) {
+      expect(item.icon, `icon for ${item.id}`).toBeDefined()
+      expect(item.icon!.length).toBeGreaterThan(0)
+    }
+  })
   it('has weighted chest and boss drop tables', () => {
     expect(items.chest_table.length).toBeGreaterThan(2)
     expect(items.boss_drops.length).toBeGreaterThan(2)
