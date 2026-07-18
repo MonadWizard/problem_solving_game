@@ -4,8 +4,10 @@ import { useGameStore } from '../store/gameStore'
 import { totalXp, xpToNextLevel, formatBounty } from '../lib/xp'
 import { computeStreak } from '../lib/streak'
 import SeaChart from '../components/SeaChart'
+import ShipSprite from '../components/ShipSprite'
 import IslandList from '../components/IslandList'
 import AnimatedNumber from '../motion/AnimatedNumber'
+import { shipTier, SHIP_TIER_LABEL } from '../lib/unlocks'
 
 type Tab = 1 | 2 | 3
 
@@ -51,6 +53,7 @@ export default function MapScreen() {
   const xp = totalXp(local, problems)
   const { level, current, needed } = xpToNextLevel(xp)
   const streak = computeStreak(local.events)
+  const tier = shipTier(j1, local)
   const activeTab: Tab = tab === '2' ? 2 : tab === '3' ? 3 : 1
 
   return (
@@ -68,6 +71,12 @@ export default function MapScreen() {
           <p className="text-xs opacity-70">
             Level {level} · <AnimatedNumber value={current} />/{needed} XP to next level
           </p>
+        </div>
+        <div className="relative flex items-center gap-1.5 text-sm" aria-label={`Ship: ${SHIP_TIER_LABEL[tier]}`}>
+          <svg viewBox="-28 -42 56 46" width="28" height="23" aria-hidden focusable="false">
+            <ShipSprite tier={tier} />
+          </svg>
+          <span>{SHIP_TIER_LABEL[tier]}</span>
         </div>
         <p className="relative text-sm" aria-label={`${streak} day streak`}>
           🔥 {streak} day{streak === 1 ? '' : 's'}
