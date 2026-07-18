@@ -599,6 +599,23 @@ try {
   existing = JSON.parse(readFileSync(existingUrl, 'utf8'))
 } catch { /* first run without a prior journey3.json is fine */ }
 
+// Global boss/non-boss-hard exclusivity: a slug used as a boss (2x XP) on one company must never be
+// used as a plain hard problem on another, and vice versa — otherwise the same (journeyId, slug) key
+// carries two different xp/difficulty values, which both the client's indexProblems() map
+// (src/data/curriculum.ts) and the Supabase `problems` reference table (primary key (journey_id, slug))
+// collapse to a single, arbitrary "last write wins" value. Pre-seeded from any existing data so future
+// incremental top-up runs (which read `existing`) don't reintroduce a conflict against already-shipped
+// classifications.
+const globalBossSlugs = new Set()
+const globalNonBossHardSlugs = new Set()
+if (existing) {
+  for (const p of existing.problems) {
+    if (p.difficulty !== 'hard') continue
+    if (p.is_boss) globalBossSlugs.add(p.slug)
+    else globalNonBossHardSlugs.add(p.slug)
+  }
+}
+
 const islands = []
 const problems = []
 
@@ -618,19 +635,22 @@ COMPANIES.forEach(([name, domain], idx) => {
   newEasy.forEach((p) => exclude.add(p.slug))
   const newMedium = pick(rng, POOL.medium, MEDIUM_N - keptMedium.length, exclude)
   newMedium.forEach((p) => exclude.add(p.slug))
-  const hardNeeded = HARD_N - (keptBoss ? 1 : 0) - keptHardNonBoss.length
+  const hardNeeded = HARD_N - 1 - keptHardNonBoss.length // -1 reserves the boss's own slot, kept or freshly picked
   const newHard = []
   if (hardNeeded > 0) {
-    const designPicked = pick(rng, DESIGN_HARD_POOL, Math.min(3, hardNeeded), exclude)
-    designPicked.forEach((p) => exclude.add(p.slug))
+    const hardExclude = new Set(exclude)
+    for (const s of globalBossSlugs) hardExclude.add(s)
+
+    const designPicked = pick(rng, DESIGN_HARD_POOL, Math.min(3, hardNeeded), hardExclude)
+    designPicked.forEach((p) => { exclude.add(p.slug); hardExclude.add(p.slug) })
     newHard.push(...designPicked)
 
-    const recentPicked = pick(rng, RECENT_HARD_POOL, Math.min(3, Math.max(0, hardNeeded - newHard.length)), exclude)
-    recentPicked.forEach((p) => exclude.add(p.slug))
+    const recentPicked = pick(rng, RECENT_HARD_POOL, Math.min(3, Math.max(0, hardNeeded - newHard.length)), hardExclude)
+    recentPicked.forEach((p) => { exclude.add(p.slug); hardExclude.add(p.slug) })
     newHard.push(...recentPicked.map((p) => ({ ...p, _recency: 'recently popular' })))
 
-    const hrPicked = pick(rng, HR_HARD_POOL, Math.min(3, Math.max(0, hardNeeded - newHard.length)), exclude)
-    hrPicked.forEach((p) => exclude.add(p.slug))
+    const hrPicked = pick(rng, HR_HARD_POOL, Math.min(3, Math.max(0, hardNeeded - newHard.length)), hardExclude)
+    hrPicked.forEach((p) => { exclude.add(p.slug); hardExclude.add(p.slug) })
     newHard.push(
       ...hrPicked.map((p) => ({
         ...p,
@@ -641,16 +661,21 @@ COMPANIES.forEach(([name, domain], idx) => {
 
     const remaining = hardNeeded - newHard.length
     if (remaining > 0) {
-      const classicPicked = pick(rng, POOL.hard, remaining, exclude)
-      classicPicked.forEach((p) => exclude.add(p.slug))
+      const classicPicked = pick(rng, POOL.hard, remaining, hardExclude)
+      classicPicked.forEach((p) => { exclude.add(p.slug); hardExclude.add(p.slug) })
       newHard.push(...classicPicked)
     }
   }
+  newHard.forEach((p) => globalNonBossHardSlugs.add(p.slug))
+
   let boss = keptBoss
   if (!boss) {
-    const bossCandidates = POOL.hard.filter((p) => !exclude.has(p.slug))
+    const bossExclude = new Set(exclude)
+    for (const s of globalNonBossHardSlugs) bossExclude.add(s)
+    const bossCandidates = POOL.hard.filter((p) => !bossExclude.has(p.slug))
     boss = bossCandidates[Math.floor(rng() * bossCandidates.length)]
   }
+  globalBossSlugs.add(boss.slug)
 
   const easyAll = [...keptEasy, ...newEasy]
   const mediumAll = [...keptMedium, ...newMedium]
@@ -678,6 +703,22 @@ COMPANIES.forEach(([name, domain], idx) => {
 })
 
 const journey3 = { id: 3, name: 'The Abyss', islands, problems }
+
+// Regression guard for the cross-company slug xp/difficulty collision fixed in the 2026-07-18 Abyss
+// expansion follow-up: every occurrence of a given slug across all 100 companies must carry the exact
+// same xp/difficulty/is_boss — otherwise the client's indexProblems() map and the Supabase `problems`
+// reference table (both keyed on (journeyId, slug) only) would silently collapse to an arbitrary value.
+const slugShapes = new Map()
+for (const p of problems) {
+  const shape = `${p.xp}|${p.difficulty}|${p.is_boss}`
+  if (!slugShapes.has(p.slug)) slugShapes.set(p.slug, new Set())
+  slugShapes.get(p.slug).add(shape)
+}
+for (const [slug, shapes] of slugShapes) {
+  if (shapes.size > 1) {
+    throw new Error(`slug "${slug}" has inconsistent xp/difficulty/is_boss across companies: ${[...shapes].join(' vs ')}`)
+  }
+}
 
 // Sanity checks mirroring src/test/curriculum.test.ts invariants.
 if (islands.length !== 100) throw new Error(`expected 100 islands, got ${islands.length}`)
