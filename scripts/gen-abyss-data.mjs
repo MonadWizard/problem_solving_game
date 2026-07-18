@@ -665,6 +665,16 @@ COMPANIES.forEach(([name, domain], idx) => {
       classicPicked.forEach((p) => { exclude.add(p.slug); hardExclude.add(p.slug) })
       newHard.push(...classicPicked)
     }
+    // pick() silently under-fills if a pool is exhausted rather than erroring — the global boss/
+    // non-boss-hard exclusivity sets shrink the effective pool every company, so this can't be assumed
+    // safe by inspection alone. Fail loudly here (naming the company) instead of surfacing 60 problems
+    // later as an opaque "island X has 58 problems" error with no clue where the shortfall came from.
+    if (newHard.length < hardNeeded) {
+      throw new Error(
+        `${id}: hard-tier pools exhausted — needed ${hardNeeded} new hard picks, only found ${newHard.length} ` +
+          `(design/recent/HackerRank/classic pools combined, after excluding globally boss-locked slugs)`,
+      )
+    }
   }
   newHard.forEach((p) => globalNonBossHardSlugs.add(p.slug))
 
@@ -673,6 +683,9 @@ COMPANIES.forEach(([name, domain], idx) => {
     const bossExclude = new Set(exclude)
     for (const s of globalNonBossHardSlugs) bossExclude.add(s)
     const bossCandidates = POOL.hard.filter((p) => !bossExclude.has(p.slug))
+    if (!bossCandidates.length) {
+      throw new Error(`${id}: no boss candidates left in POOL.hard after excluding globally non-boss-hard-locked slugs`)
+    }
     boss = bossCandidates[Math.floor(rng() * bossCandidates.length)]
   }
   globalBossSlugs.add(boss.slug)
