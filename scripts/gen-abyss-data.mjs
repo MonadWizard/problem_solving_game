@@ -5,7 +5,7 @@
 // "asked by company" frequency ranking (that data is LeetCode's proprietary
 // company-tag feature). See docs/superpowers/specs/2026-07-18-blind-sea-unlock-and-abyss-design.md
 // (original 20-company design) and its "100 companies" addendum (the revision this
-// script implements: 100 companies x 50 problems, `roles`/`recency` tags, and slugs
+// script implements: 100 companies x 60 problems, `roles`/`recency` tags, and slugs
 // unique per-island rather than journey-wide, since real interview problems are
 // legitimately reused across companies).
 import { readFileSync, writeFileSync } from 'node:fs'
