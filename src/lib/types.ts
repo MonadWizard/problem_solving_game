@@ -14,8 +14,10 @@ export interface Problem {
   time_limit_seconds?: number
   /** Journey 3 only: illustrative target-role bands (not scraped interview data). */
   roles?: string[]
-  /** Journey 3 only: "classic, evergreen" vs "commonly asked". */
+  /** Journey 3 only: "classic, evergreen" | "commonly asked" | "recently popular". */
   recency?: string
+  /** Journey 3 only: which judge this problem is from. Absent means leetcode. */
+  source?: 'leetcode' | 'codeforces' | 'hackerrank'
 }
 
 export interface Island {
