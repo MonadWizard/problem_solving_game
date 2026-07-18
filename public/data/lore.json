@@ -1,0 +1,36 @@
+{
+  "journeys": {
+    "1": {
+      "icon": "🗺️",
+      "tagline": "Calm-ish teaching waters",
+      "source": "NeetCode 150",
+      "blurb": "Where every rookie starts — foundational patterns, no clock running."
+    },
+    "2": {
+      "icon": "🌫️",
+      "tagline": "Fog everywhere — charts show no patterns",
+      "source": "Blind 75 · timed",
+      "blurb": "The hint is hidden by default. Solve against the clock or spend an Oracle Fruit to see the pattern."
+    },
+    "3": {
+      "icon": "🕳️",
+      "tagline": "The rumored third sea",
+      "source": "Hard problems · timed",
+      "blurb": "Where the toughest bosses wait. Not for the faint of heart."
+    }
+  },
+  "mechanics": [
+    { "icon": "💰", "name": "Bounty (XP)", "blurb": "Earned from every solve. Total bounty sets your level." },
+    { "icon": "📈", "name": "Level", "blurb": "Rises automatically as your bounty grows." },
+    { "icon": "🔥", "name": "Streak", "blurb": "Consecutive days solved — always derived from your log, never a device counter." },
+    { "icon": "⭐", "name": "Star", "blurb": "Earned by beating a timed problem's clock." },
+    { "icon": "☠", "name": "Boss fights", "blurb": "Each island ends in a boss problem — the only source of cursed fruit." },
+    { "icon": "🗺️", "name": "Map vs List", "blurb": "Toggle between the visual sea chart and a plain keyboard-friendly list." }
+  ],
+  "how_it_works": [
+    { "step": 1, "icon": "🧭", "text": "Pick an island" },
+    { "step": 2, "icon": "💻", "text": "Solve the real problem on LeetCode" },
+    { "step": 3, "icon": "✅", "text": "Mark it solved here" },
+    { "step": 4, "icon": "🏆", "text": "Earn XP, streaks, and loot" }
+  ]
+}

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { ItemsData, Journey, Problem, StoryData } from '../lib/types'
+import type { LoreData } from '../data/lore'
 
 const read = <T>(name: string): T =>
   JSON.parse(readFileSync(`public/data/${name}.json`, 'utf8')) as T
@@ -10,6 +11,7 @@ const j2 = read<Journey>('journey2')
 const j3 = read<Journey>('journey3')
 const items = read<ItemsData>('items')
 const story = read<StoryData>('story')
+const lore = read<LoreData>('lore')
 
 const XP: Record<Problem['difficulty'], number> = { easy: 100, medium: 250, hard: 500 }
 
@@ -188,6 +190,39 @@ describe('story.json', () => {
       expect(s.boss_intro.length).toBeGreaterThan(0)
       expect(s.complete.length).toBeGreaterThan(0)
       expect(s.title.length).toBeGreaterThan(0)
+    }
+  })
+})
+
+describe('lore.json', () => {
+  it('has a blurb for all three journeys', () => {
+    for (const id of [1, 2, 3] as const) {
+      const j = lore.journeys[id]
+      expect(j, `lore for journey ${id}`).toBeDefined()
+      expect(j.icon.length).toBeGreaterThan(0)
+      expect(j.tagline.length).toBeGreaterThan(0)
+      expect(j.source.length).toBeGreaterThan(0)
+      expect(j.blurb.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('has at least one core-mechanic explainer', () => {
+    expect(lore.mechanics.length).toBeGreaterThan(0)
+    for (const m of lore.mechanics) {
+      expect(m.icon.length).toBeGreaterThan(0)
+      expect(m.name.length).toBeGreaterThan(0)
+      expect(m.blurb.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('has an ordered how-it-works step flow', () => {
+    expect(lore.how_it_works.length).toBeGreaterThan(0)
+    expect(lore.how_it_works.map((s) => s.step)).toEqual(
+      lore.how_it_works.map((_, k) => k + 1),
+    )
+    for (const s of lore.how_it_works) {
+      expect(s.icon.length).toBeGreaterThan(0)
+      expect(s.text.length).toBeGreaterThan(0)
     }
   })
 })
